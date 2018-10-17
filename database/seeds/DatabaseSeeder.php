@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Database\Seeder;
+//use App\ConfigProductCathegorySeeder;
+//use App\ConfigProductTypeSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -11,6 +13,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // $this->call(UsersTableSeeder::class);
+         $this->call([ConfigProductCathegorySeeder::class,
+                    ConfigProductTypeSeeder::class]);
     }
 }

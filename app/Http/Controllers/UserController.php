@@ -3,28 +3,44 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Product;
+use App\User;
+use App\Role;
 
-class ProductController extends Controller
+class UserController extends Controller
 {
     //
     public function index()
     {
-        return Product::all();
+        return User::all();
     }
+
+    //Returns all users with Membre role
+    public function getUsersByRole($role) {
+        if ($role !== 'Board') {
+            return User::whereHas('roles', function($q) use($role) {
+                $q->where('role', '=', $role);
+            })->get();
+        } else {
+            return User::whereHas('roles', function($q) {
+                $q->where('role', '<>', 'Bureau');
+            })->get();      
+        }
+    }
+
+
 
     public function show($id)
     {
-        $product = Product::find($id);
+        $user = User::find($id);
         if ($product) {
-            return response()->json($product, 200);
+            return response()->json($user, 200);
         } else {
             //This needs to be commented and return null,204
             $object = (object) ['test' => 'no data'];
             return response()->json($object, 204);
         }
     }
-
+/*
     public function store(Request $request)
     {
         $product = Product::create($request->all());
@@ -42,7 +58,7 @@ class ProductController extends Controller
         $product->delete();
         return response()->json(null, 204);
     }
-
+*/
 }
 /*
 200: OK. The standard success code and default option.
@@ -55,4 +71,4 @@ class ProductController extends Controller
 404: Not found. This will be returned automatically by Laravel when the resource is not found.
 500: Internal server error. Ideally you're not going to be explicitly returning this, but if something unexpected breaks, this is what your user is going to receive.
 503: Service unavailable. Pretty self explanatory, but also another code that is not going to be returned explicitly by the application
-*/
+*/   
