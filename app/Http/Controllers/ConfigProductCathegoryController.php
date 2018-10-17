@@ -28,7 +28,7 @@ class ConfigProductCathegoryController extends Controller
     public function store(Request $request)
     {
         $result = ConfigProductCathegory::create($request->all());
-        return response()->json($product, 201);
+        return response()->json($result, 201);
     }
 
     public function update(Request $request, ConfigProductCathegory $result)

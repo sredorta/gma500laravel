@@ -1,8 +1,10 @@
 <?php
 
 use Illuminate\Http\Request;
+use App\Cors;
 use App\Company;
 use App\User;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -18,13 +20,18 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::group(['middleware' => ['api','cors']], function () {
-    Route::post('auth/login', 'ApiController@login');
-    Route::group(['middleware' => 'jwt.auth'], function () {
-        Route::get('user', 'ApiController@getAuthUser');
-    });
-});
+//Route::group(['middleware' => 'api'], function () {
+Route::post('auth/login', 'ApiController@login');
 
+//Route::group(['middleware' => 'jwt.auth'], function () {
+    Route::get('user', 'ApiController@getAuthUser');
+//});
+
+//Route::get('user', 'ApiController@getAuthUser');
+//    });
+//});
+
+Route::post('auth/signup', 'ApiController@register');
 
 
 

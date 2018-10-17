@@ -16,7 +16,7 @@ class CreateConfigProductTypesTable extends Migration
         Schema::create('config_product_types', function (Blueprint $table) {
             $table->increments('id');
             $table->timestamps();
-            $table->string('name');              
+            $table->string('name')->unique();              
         });
     }
 

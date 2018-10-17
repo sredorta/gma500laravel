@@ -40,7 +40,7 @@ class UserController extends Controller
             return response()->json($object, 204);
         }
     }
-/*
+
     public function store(Request $request)
     {
         $product = Product::create($request->all());
@@ -58,7 +58,7 @@ class UserController extends Controller
         $product->delete();
         return response()->json(null, 204);
     }
-*/
+
 }
 /*
 200: OK. The standard success code and default option.

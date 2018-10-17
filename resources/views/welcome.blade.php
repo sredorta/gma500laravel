@@ -65,6 +65,71 @@
         </style>
     </head>
     <body>
+    <div>
+    <form method="post" action="/api/auth/signup" enctype="multipart/form-data">
+        {{ csrf_field() }}
+        <div class="form-group row">
+            <label for="titleid" class="col-sm-3 col-form-label">First Name</label>
+            <div class="col-sm-9">
+                <input name="firstName" type="text" class="form-control" id="titleid" placeholder="first">
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="titleid" class="col-sm-3 col-form-label">Last Name</label>
+            <div class="col-sm-9">
+                <input name="lastName" type="text" class="form-control" id="titleid" placeholder="last">
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="titleid" class="col-sm-3 col-form-label">Mobile</label>
+            <div class="col-sm-9">
+                <input name="mobile" type="text" class="form-control" id="titleid" placeholder="mobile">
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="titleid" class="col-sm-3 col-form-label">Email</label>
+            <div class="col-sm-9">
+                <input name="email" type="text" class="form-control" id="titleid" placeholder="email">
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="publisherid" class="col-sm-3 col-form-label">Password</label>
+            <div class="col-sm-9">
+                <input name="password" type="text" class="form-control" id="publisherid"
+                       placeholder="Password">
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="offset-sm-3 col-sm-9">
+                <button type="submit" class="btn btn-primary">Sign Up</button>
+            </div>
+        </div>
+    </form>
+
+    <h1>Login</h1>
+    <form method="post" action="/api/auth/login" enctype="multipart/form-data">
+        {{ csrf_field() }}
+        <div class="form-group row">
+            <label for="titleid" class="col-sm-3 col-form-label">Email</label>
+            <div class="col-sm-9">
+                <input name="email" type="text" class="form-control" id="titleid" placeholder="email">
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="publisherid" class="col-sm-3 col-form-label">Password</label>
+            <div class="col-sm-9">
+                <input name="password" type="text" class="form-control" id="publisherid"
+                       placeholder="Password">
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="offset-sm-3 col-sm-9">
+                <button type="submit" class="btn btn-primary">Log In</button>
+            </div>
+        </div>
+    </form>
+
+    </div>
         <div class="flex-center position-ref full-height">
             @if (Route::has('login'))
                 <div class="top-right links">
