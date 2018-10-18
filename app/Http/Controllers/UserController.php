@@ -14,6 +14,39 @@ class UserController extends Controller
         return User::all();
     }
 
+    ///////////////////////////////////////////////////////////////////////////////
+    //  NON AUTH RELATED
+    //////////////////////////////////////////////////////////////////////////////
+    public function getUserIndexes(Request $request){
+        $type = $request->type;
+        switch ($type) {
+            case "bureau":
+                $users = User::select('id')->where('isBureau','=',1)->get();
+                break;
+            case "board" :
+                $users = User::select('id')->where('isBoard','=',1)->get();
+                break;
+            case "member" :
+                $users = User::select('id')->where('isMember','=',1)->get();
+                break;
+            default:
+                $users = User::select('id')->get();
+        }
+        return response()->json($users,200);
+    }   
+
+    public function getUserById(Request $request){
+        $id = $request->id;
+        $user = User::find($id);
+        return response()->json($user,200);
+    }   
+
+
+
+
+
+
+
     //Returns all users with Membre role
     public function getUsersByRole($role) {
         if ($role !== 'Board') {

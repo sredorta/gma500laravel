@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Str;
 
 class CreateUsersTable extends Migration
 {
@@ -19,14 +20,18 @@ class CreateUsersTable extends Migration
             $table->string('lastName');
             $table->string('email')->unique();
             $table->string('mobile')->unique();
+            $table->text('avatar');
+            $table->boolean('isMember')->default(false);
+            $table->boolean('isBoard')->default(false);
+            $table->boolean('isBureau')->default(false);
+            $table->string('title')->nullable()->default(null);
             $table->string('password');
-            $table->boolean('isValidated')->default(false);
-            $table->text('api_token')->nullable()->default(null); //Should be unique...
-            $table->rememberToken();
+            $table->boolean('isEmailValidated')->default(false);
+            $table->string('emailValidationKey')->default(Str::random(32));
             $table->timestamps();
         });
     }
-
+ 
     /**
      * Reverse the migrations.
      *

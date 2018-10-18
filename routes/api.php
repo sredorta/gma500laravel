@@ -21,17 +21,22 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 //Route::group(['middleware' => 'api'], function () {
-Route::post('auth/login', 'ApiController@login');
+Route::post('auth/signup', 'ApiController@register');   //Create user and token from signup form 
+Route::post('auth/login', 'ApiController@login');       //Login user from credentials
+Route::post('auth/logout', 'ApiController@logout');      //Logout user from token invalidation
+Route::get('auth/user', 'ApiController@getAuthUser');   //Return user from token
 
+Route::post('users/indexes' , 'UserController@getUserIndexes');  //Return indexes of members
+Route::get('users/{id}', 'UserController@getUserById');
 //Route::group(['middleware' => 'jwt.auth'], function () {
-    Route::get('user', 'ApiController@getAuthUser');
+    
 //});
 
 //Route::get('user', 'ApiController@getAuthUser');
 //    });
 //});
 
-Route::post('auth/signup', 'ApiController@register');
+
 
 
 
@@ -58,5 +63,5 @@ Route::get('products/{id}', 'ProductController@show');
 //Route::put('products/{id}', 'ProductController@update');
 //Route::delete('products/{id}', 'ProductController@delete');
 
-Route::get('users', 'UserController@index');
-Route::get('users/role/{role}', 'UserController@getUsersByRole'); //Roles are Membre,Bureau,Board
+//Route::get('users', 'UserController@index');
+//Route::get('users/role/{role}', 'UserController@getUsersByRole'); //Roles are Membre,Bureau,Board

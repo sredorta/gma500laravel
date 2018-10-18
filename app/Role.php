@@ -12,8 +12,8 @@ class Role extends Model
         'user_id','role'
     ];    
      //Define Role as a role to many users
-     public function users() {
+    /* public function users() {
         return $this->hasMany('App\User');
-    }   
+    }   */
     //
 }

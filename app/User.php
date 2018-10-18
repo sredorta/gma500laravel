@@ -10,16 +10,16 @@ class User extends Authenticatable
     use Notifiable;
 
     //Define Role as a user to Many
-    public function roles() {
+    /*public function roles() {
         return $this->hasMany('App\Role');
-    }
+    }*/
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
     protected $fillable = [
-        'firstName','lastName', 'email', 'mobile','password','isValidated'
+        'firstName','lastName', 'email', 'mobile','avatar','isMember','isBureau', 'isBoard', 'title','password','isEmailValidated','emailValidationKey'
     ];
 
     /**
@@ -28,7 +28,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password', 'api_token'
+        'password'
     ];
 
     //User delete from db
