@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Validator;
 use JWTAuth;
 use App\User;
+
 class ApiController extends Controller
 {
     public function __construct()
@@ -25,19 +27,18 @@ class ApiController extends Controller
         if ($validator->fails()) {
             return response()->json($validator->errors(),400);
         }
+        $emailkey = Str::random(50);
         User::create([
             'firstName' => $request->get('firstName'),           
             'lastName' => $request->get('lastName'),
             'mobile' => $request->get('mobile'),
             'email' => $request->get('email'),
             'password' => bcrypt($request->get('password')),
-            'avatar' => 'url('+ $request->get('avatar')+')'
+            'emailValidationKey' => $emailkey,
+            'avatar' => 'url(' . $request->get('avatar') . ')'
         ]);
         $user = User::first();
         $token = JWTAuth::fromUser($user);
-        //Save the token
-        //$user->api_token = $token;
-        //$user->save();
 
         //Send email with validation key
         //Add user notification
