@@ -16,11 +16,11 @@ use App\User;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
+/*Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
-});
+});*/
 
-//Route::group(['middleware' => 'api'], function () {
+//Route::group(['middleware' => 'jwt.auth'], function(Request $request) {
 Route::post('auth/signup', 'ApiController@register');   //Create user and token from signup form 
 Route::post('auth/login', 'ApiController@login');       //Login user from credentials
 Route::post('auth/logout', 'ApiController@logout');      //Logout user from token invalidation
@@ -28,6 +28,7 @@ Route::get('auth/user', 'ApiController@getAuthUser');   //Return user from token
 
 Route::post('users/indexes' , 'UserController@getUserIndexes');  //Return indexes of members
 Route::get('users/{id}', 'UserController@getUserById');
+//});
 //Route::group(['middleware' => 'jwt.auth'], function () {
     
 //});

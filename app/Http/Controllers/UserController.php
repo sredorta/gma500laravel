@@ -3,16 +3,28 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use JWTAuth;
 use Validator;
 use App\User;
 use App\Role;
 
 class UserController extends Controller
 {
+
     //
     public function index()
     {
         return User::all();
+    }
+
+    public function getCurrentUser(Request $request) {
+        if ($request->bearerToken()=== null) {
+            return response()->json(null,200);
+        }
+        JWTAuth::setToken($request->bearerToken()) ;
+        $result = JWTAuth::toUser();
+        if ($result == null) return  new User;
+        return $result;
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -33,8 +45,12 @@ class UserController extends Controller
             case "board" :
                 $users = User::where('isBoard','=',true)->orderBy('lastName')->pluck('id')->toArray();
                 break;
-            case "member" :           
-                $users = User::where('isMember','=',true)->orderBy('lastName')->pluck('id')->toArray();
+            case "member" :      
+                if ($this->getCurrentUser($request)->hasAccess("admin")) {
+                    $users = User::where('isMember','=',true)->orderBy('lastName')->pluck('id')->toArray();
+                } else {
+                    $users = [];
+                }
                 break;
             default:
                 $users = User::pluck('id')->toArray();
@@ -45,28 +61,10 @@ class UserController extends Controller
     public function getUserById(Request $request){
         $id = $request->id;
         $user = User::find($id);
+  
+        //return response()->json($this->getCurrentUser($request),200);        
         return response()->json($user,200);
     }   
-
-
-
-
-
-
-
-    //Returns all users with Membre role
-    public function getUsersByRole($role) {
-        if ($role !== 'Board') {
-            return User::whereHas('roles', function($q) use($role) {
-                $q->where('role', '=', $role);
-            })->get();
-        } else {
-            return User::whereHas('roles', function($q) {
-                $q->where('role', '<>', 'Bureau');
-            })->get();      
-        }
-    }
-
 
 
     public function show($id)
