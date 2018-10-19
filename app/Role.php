@@ -9,11 +9,11 @@ use Illuminate\Database\Eloquent\Model;
 class Role extends Model
 {
     protected $fillable = [
-        'user_id','role'
-    ];    
-     //Define Role as a role to many users
-    /* public function users() {
-        return $this->hasMany('App\User');
-    }   */
-    //
+        'name','description'
+    ];   
+
+    //Define Role as a role to many users
+    public function users() {
+        return $this->belongsToMany('App\User');
+    }   
 }

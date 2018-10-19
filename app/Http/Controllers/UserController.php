@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Validator;
 use App\User;
 use App\Role;
 
@@ -19,18 +20,24 @@ class UserController extends Controller
     //////////////////////////////////////////////////////////////////////////////
     public function getUserIndexes(Request $request){
         $type = $request->type;
+        $validator = Validator::make($request->all(), [
+            'type' => 'in:bureau,board,member,all'
+        ]);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(),400);
+        }
         switch ($type) {
             case "bureau":
-                $users = User::select('id')->where('isBureau','=',1)->get();
+                $users = User::where('isBureau','=',true)->orderBy('lastName')->pluck('id')->toArray();
                 break;
             case "board" :
-                $users = User::select('id')->where('isBoard','=',1)->get();
+                $users = User::where('isBoard','=',true)->orderBy('lastName')->pluck('id')->toArray();
                 break;
-            case "member" :
-                $users = User::select('id')->where('isMember','=',1)->get();
+            case "member" :           
+                $users = User::where('isMember','=',true)->orderBy('lastName')->pluck('id')->toArray();
                 break;
             default:
-                $users = User::select('id')->get();
+                $users = User::pluck('id')->toArray();
         }
         return response()->json($users,200);
     }   
