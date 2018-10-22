@@ -20,16 +20,17 @@ use App\User;
     return $request->user();
 });*/
 
-//Route::group(['middleware' => 'jwt.auth'], function(Request $request) {
-Route::post('auth/signup', 'ApiController@register');   //Create user and token from signup form 
-Route::post('auth/login', 'ApiController@login');       //Login user from credentials
-Route::post('auth/logout', 'ApiController@logout');      //Logout user from token invalidation
-Route::get('auth/user', 'ApiController@getAuthUser');   //Return user from token
+//Route::group(['middleware' => 'cors'], function(Request $request) {
 
-Route::post('users/indexes' , 'UserController@getUserIndexes');  //Return indexes of members
-Route::get('users/{id}', 'UserController@getUserById');
+    Route::post('auth/signup', 'ApiController@register');   //Create user and token from signup form 
+    Route::post('auth/login', 'ApiController@login');       //Login user from credentials
+    Route::post('auth/logout', 'ApiController@logout');      //Logout user from token invalidation
+    Route::get('auth/user', 'ApiController@getAuthUser');   //Return user from token
+
+    Route::post('users/indexes' , 'UserController@getUserIndexes');  //Return indexes of members
+    Route::get('users/{id}', 'UserController@getUserById');
 //});
-//Route::group(['middleware' => 'jwt.auth'], function () {
+//Route::group(['middleware' => 'jwt-auth'], function () {
     
 //});
 

@@ -67,8 +67,8 @@ class ApiController extends Controller
         if ($validator->fails()) {
             return response()
                 ->json([
-                    'code' => 1,
-                    'message' => 'Validation failed.',
+                    'response' => 'error',
+                    'message' => 'validation_failed',
                     'errors' => $validator->errors()
                 ], 400);
         }
@@ -78,13 +78,13 @@ class ApiController extends Controller
                 return response()->json([
                     'response' => 'error',
                     'message' => 'invalid_email_or_password',
-                ]);
+                ],401);
             }
         } catch (JWTAuthException $e) {
             return response()->json([
                 'response' => 'error',
                 'message' => 'failed_to_create_token',
-            ]);
+            ],401);
         }
 
         //Return the token

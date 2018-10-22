@@ -17,15 +17,29 @@ class UserController extends Controller
         return User::all();
     }
 
-    public function getCurrentUser(Request $request) {
+
+    //Checks if we are currently logged in and returns user if we are and null if not
+    public function isLogged(Request $request) {
         if ($request->bearerToken()=== null) {
-            return response()->json(null,200);
+            return false;
         }
+        //We need to remove the catch and redirect to loggin in production
+        //try {
         JWTAuth::setToken($request->bearerToken()) ;
         $result = JWTAuth::toUser();
-        if ($result == null) return  new User;
+        //} catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+        //    $result = null;
+        //}
         return $result;
     }
+
+    //Checks if the current user has the allowed access
+    public function hasAccess(Request $request, $access) {
+        $result = $this->isLogged($request);
+        if ($result == null) return false;  //Token invalid
+        return !$result->roles()->where('name','=',$access)->get()->isEmpty();
+    }
+
 
     ///////////////////////////////////////////////////////////////////////////////
     //  NON AUTH RELATED
@@ -46,7 +60,7 @@ class UserController extends Controller
                 $users = User::where('isBoard','=',true)->orderBy('lastName')->pluck('id')->toArray();
                 break;
             case "member" :      
-                if ($this->getCurrentUser($request)->hasAccess("admin")) {
+                if ($this->isLogged($request)) {
                     $users = User::where('isMember','=',true)->orderBy('lastName')->pluck('id')->toArray();
                 } else {
                     $users = [];
@@ -60,10 +74,20 @@ class UserController extends Controller
 
     public function getUserById(Request $request){
         $id = $request->id;
-        $user = User::find($id);
-  
-        //return response()->json($this->getCurrentUser($request),200);        
-        return response()->json($user,200);
+
+        if (!$this->isLogged($request)) {
+            $user = User::select('id','firstName','lastName','avatar','title')->find($id);
+            return response()->json($user,200);            
+        }
+        if ($this->hasAccess($request,"member")) {
+            $user = User::select('id','firstName','lastName','avatar','title','email', 'mobile')->find($id);
+            return response()->json($user,200);
+        }
+        if ($this->hasAccess($request,"admin")) {
+            $user = User::find($id);
+            return response()->json($user,200);
+        }
+
     }   
 
 
