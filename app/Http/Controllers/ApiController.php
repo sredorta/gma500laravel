@@ -3,10 +3,14 @@
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 use Validator;
 use JWTAuth;
 use App\User;
+use App\Config\constants;
+use Illuminate\Support\Facades\Mail;
+use Config;
 
 class ApiController extends Controller
 {
@@ -17,6 +21,17 @@ class ApiController extends Controller
 
     public function register(Request $request)
     {
+
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|string|email|max:255|unique:users',
+            'mobile' => 'required|unique:users'
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'response' => 'error',
+                'message' => 'user_already_registered'
+            ],400);
+        }       
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|email|max:255|unique:users',
             'firstName' => 'required',
@@ -28,23 +43,39 @@ class ApiController extends Controller
             return response()->json($validator->errors(),400);
         }
         $emailkey = Str::random(50);
-        User::create([
+        $user = User::create([
             'firstName' => $request->get('firstName'),           
             'lastName' => $request->get('lastName'),
             'mobile' => $request->get('mobile'),
             'email' => $request->get('email'),
-            'password' => bcrypt($request->get('password')),
+            'password' =>   Hash::make($request->get('password'), ['rounds' => 12]),
             'emailValidationKey' => $emailkey,
             'avatar' => 'url(' . $request->get('avatar') . ')'
         ]);
-        $user = User::first();
-        $token = JWTAuth::fromUser($user);
 
         //Send email with validation key
+        $data = [
+            'name' =>  $user->firstName,
+            'key' => Config::get('constants.API_URL') . '/api/auth/emailvalidate?id=' . 
+                    $user->id  .
+                    '&key=' .
+                    $user->emailValidationKey
+        ];
+
+        Mail::send('emails.validateemail',$data, function($message) use ($user)
+        {
+            $message->from(Config::get('constants.EMAIL_FROM_ADDRESS'), Config::get('constants.EMAIL_FROM_NAME'));
+            $message->replyTo(Config::get('constants.EMAIL_NOREPLY'));
+            $message->to($user->email);
+            $message->subject("GMA500: Confirmation de votre adresse électronique");
+        });   
+
+
+
         //Add user notification
 
         //Return the token
-        $object = (object) ['token' => $token];
+        $object = (object) ['email' => $user->email, 'id' => $user->id];
         return response()->json($object, 200);
     }
     
@@ -108,6 +139,38 @@ class ApiController extends Controller
         }    
         JWTAuth::invalidate($request->bearerToken());
         return response()->json(null,200);
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////////
+    // emailValidate:
+    //      id : Id of the user
+    //      key: Email validation key
+    //
+    //  We get id and email and we check if it matches the one in the db, if it's the case
+    //  we then set isEmailValidated to true
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////
+    public function emailValidate(REquest $request) {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required',
+            'key' => 'required'
+        ]);        
+        if ($validator->fails()) {
+            return view('emailvalidation')->with('result',0);
+        }        
+        //Check that we have user with the requested id
+        $user = User::where('id', '=', $request->get('id'))->where('emailValidationKey','=',$request->get('key'));
+        if (!$user->count()) {
+            return view('emailvalidation')->with('result',0);
+        }
+        //We are correct here so we update 
+        $user = $user->first();
+        //Regenerate a new key just in case we ask a new email
+        /////$user->emailValidationKey = Str::random(50);
+        $user->isEmailValidated = 1;
+        $user->save();
+        
+        return view('emailvalidation')->with('result',1)->with('url',Config::get('constants.SITE_URL'));
     }
 
 

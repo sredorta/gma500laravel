@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use JWTAuth;
 use Validator;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ValidateEmail;
 use App\User;
 use App\Role;
+use Config;
 
 class UserController extends Controller
 {
@@ -75,10 +78,6 @@ class UserController extends Controller
     public function getUserById(Request $request){
         $id = $request->id;
 
-        if (!$this->isLogged($request)) {
-            $user = User::select('id','firstName','lastName','avatar','title')->find($id);
-            return response()->json($user,200);            
-        }
         if ($this->hasAccess($request,"member")) {
             $user = User::select('id','firstName','lastName','avatar','title','email', 'mobile')->find($id);
             return response()->json($user,200);
@@ -87,8 +86,25 @@ class UserController extends Controller
             $user = User::find($id);
             return response()->json($user,200);
         }
+        $user = User::select('id','firstName','lastName','avatar','title')->find($id);
+        return response()->json($user,200);          
 
     }   
+
+    public function test(Request $request) {
+        $data = [
+            'name' => 'Sergi',
+            'key' => Config::get('constants.API_URL') . '/api/auth/emailvalidate?id=5&key=roBcswk6qNlR7qoY7el1GI0cCT3oNcR5aapbKyJzojXOySDmV6'
+        ];
+        Mail::send('emails.validateemail',$data, function($message)
+        {
+            $message->from(Config::get('constants.EMAIL_FROM_ADDRESS'), Config::get('constants.EMAIL_FROM_NAME'));
+            $message->replyTo(Config::get('constants.EMAIL_NOREPLY'));
+            $message->to('sergi.redorta@hotmail.com');
+            $message->subject("GMA500: Confirmation de votre adresse électronique");
+        });   
+
+    }
 
 
     public function show($id)

@@ -26,9 +26,12 @@ use App\User;
     Route::post('auth/login', 'ApiController@login');       //Login user from credentials
     Route::post('auth/logout', 'ApiController@logout');      //Logout user from token invalidation
     Route::get('auth/user', 'ApiController@getAuthUser');   //Return user from token
+    Route::get('auth/emailvalidate', 'ApiController@emailValidate');   //Return user from token
 
     Route::post('users/indexes' , 'UserController@getUserIndexes');  //Return indexes of members
     Route::get('users/{id}', 'UserController@getUserById');
+
+    Route::get('test', 'UserController@test');
 //});
 //Route::group(['middleware' => 'jwt-auth'], function () {
     
