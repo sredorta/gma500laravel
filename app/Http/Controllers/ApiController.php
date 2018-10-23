@@ -27,6 +27,15 @@ class ApiController extends Controller
         return 'toto';
     }
 
+    /////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //  register:
+    //
+    //  We create the new user and send email to validate email account
+    //  we then add notification to user of welcome
+    //  Finally we redirect to login
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////
     public function register(Request $request)
     {
 
@@ -78,8 +87,6 @@ class ApiController extends Controller
             $message->subject("GMA500: Confirmation de votre adresse électronique");
         });   
 
-
-
         //Add user notification
 
         //Return the token
@@ -87,7 +94,18 @@ class ApiController extends Controller
         return response()->json($object, 200);
     }
     
-    
+    /////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //  login:
+    //      email
+    //      password
+    //      keepconnected
+    //
+    //  We use throttle to avoid to many attempts
+    //  If login is accepted we return the token
+    //  If isEmailValidated is false we return error and invalidate token
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////
     public function login(Request $request){
         $credentials = $request->only('email', 'password');
         $token = null;
@@ -98,9 +116,9 @@ class ApiController extends Controller
         ]);
         //Define token lifeTime
         if ($request->keepconnected) {
-            $tokenLife = 120;  //Should be 1week 
+            $tokenLife = Config::get('constants.TOKEN_LIFE_LONG'); 
         } else {
-            $tokenLife = 1;   //Should be 60
+            $tokenLife = Config::get('constants.TOKEN_LIFE_SHORT'); 
         }
         //Check parameters
         if ($validator->fails()) {
@@ -132,13 +150,30 @@ class ApiController extends Controller
                 'message' => 'failed_to_create_token',
             ],401);
         }
+        //Check if isEmailValidated and if not invalidate token and return error
+        JWTAuth::setToken($token) ;
+        $user = JWTAuth::toUser();
+        if ($user->isEmailValidated == 0) {
+            JWTAuth::invalidate($token);
+            return response()->json([
+                'response' => 'error',
+                'message' => 'email_not_validated',
+            ],401);            
+        }
 
         //Return the token
         $object = (object) ['token' => $token];
         return response()->json($object,200);
     }
 
-    //It gets the token from the header and returns the user of the token or null
+    /////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //  getAuthUser:
+    //
+    //  We parse from the header the token recieved
+    //  If is valid then we return the user as json else empty
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////
     public function getAuthUser(Request $request){    
         if ($request->bearerToken()=== null) {
             return response()->json(null,200);
@@ -148,12 +183,72 @@ class ApiController extends Controller
         return response()->json($user,200);    
     }
 
+    /////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //  logout:
+    //
+    //  Invalidates the token
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////
+ 
     public function logout(Request $request){
         if ($request->bearerToken()=== null) {
             return response()->json(null,200);
         }    
         JWTAuth::invalidate($request->bearerToken());
         return response()->json(null,200);
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////
+    //  resetPassword:
+    //      email : email of the user
+    //
+    //  We get id of the user from email change password and send email with new password
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////
+    public function resetPassword(REquest $request) {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email'
+        ]);        
+        //Check parameters
+        if ($validator->fails()) {
+            return response()
+                ->json([
+                    'response' => 'error',
+                    'message' => 'validation_failed'
+                ], 400);
+        }
+
+        //Check that we have user with the requested id
+        $user = User::where('email', '=', $request->get('email'));
+        if (!$user->count()) {
+            return response()
+                ->json([
+                    'response' => 'error',
+                    'message' => 'email_not_found'
+                ], 400);          
+        }
+        //We get the user 
+        $user = $user->first();
+        //Regenerate a new password
+        $newPass = $this->_generatePassword(10);
+        $user->password = Hash::make($newPass, ['rounds' => 12]);
+        $user->save();
+        //Send email with new password
+        $data = [
+            'name' =>  $user->firstName,
+            'password' => $newPass
+        ];        
+        Mail::send('emails.resetpassword',$data, function($message) use ($user)
+        {
+            $message->from(Config::get('constants.EMAIL_FROM_ADDRESS'), Config::get('constants.EMAIL_FROM_NAME'));
+            $message->replyTo(Config::get('constants.EMAIL_NOREPLY'));
+            $message->to($user->email);
+            $message->subject("GMA500: Votre nouveau mot de passe");
+        });        
+
+        return response()->json(null, 200); 
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////
@@ -187,6 +282,26 @@ class ApiController extends Controller
         
         return view('emailvalidation')->with('result',1)->with('url',Config::get('constants.SITE_URL'));
     }
+
+    //Generate a random password
+    private function _generatePassword(
+        $length,
+        $keyspace = '01234567890123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        ) {
+            $str = '';
+            while(preg_match_all( "/[0-9]/", $str )<2) {
+            $str = '';  
+            $max = mb_strlen($keyspace, '8bit') - 1;
+            if ($max < 1) {
+                throw new Exception('$keyspace must be at least two characters long');
+            }
+            for ($i = 0; $i < $length; ++$i) {
+                $str .= $keyspace[random_int(0, $max)];
+            }
+            }
+            return $str;
+    }
+
 
 
 }

@@ -29,7 +29,8 @@ use App\User;
         Route::post('auth/logout', 'ApiController@logout');      //Logout user from token invalidation
         Route::get('auth/user', 'ApiController@getAuthUser');   //Return user from token
         Route::get('auth/emailvalidate', 'ApiController@emailValidate');   //Return user from token
-    
+        Route::post('auth/resetpassword', 'ApiController@resetPassword');   //Resets password
+
         Route::post('users/indexes' , 'UserController@getUserIndexes');  //Return indexes of members
         Route::get('users/{id}', 'UserController@getUserById');
     
