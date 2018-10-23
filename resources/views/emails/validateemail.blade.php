@@ -70,9 +70,9 @@
     <h2>Bienvenu au GMA500 {{$name}},</h2>
     <p>Vous n'avez pas encore confirmé votre adresse électronique.</p>
     <p>Vous pouvez confirmer votre adresse électronique en cliquant sur le lien suivant</p>
-    <p>{{$key}}</p>
     <a href="{{$key}}">Confirmer mon adresse électronique</a>
-
-
+    <div style="margin-top:40px">
+      <small>*** Ce message est généré automatiquement. Merci de ne pas y répondre.***</small>
+    </div>
   </body>
 </html>

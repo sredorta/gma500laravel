@@ -11,12 +11,20 @@ use App\User;
 use App\Config\constants;
 use Illuminate\Support\Facades\Mail;
 use Config;
+use Illuminate\Foundation\Auth\ThrottlesLogins;
+use Illuminate\Foundation\Auth\AuthenticatesAndRegistersUsers;
 
 class ApiController extends Controller
 {
+    use ThrottlesLogins;
     public function __construct()
     {
         $this->user = new User;
+    }
+
+    //Function required by the throttler
+    public function username() {
+        return 'toto';
     }
 
     public function register(Request $request)
@@ -103,9 +111,16 @@ class ApiController extends Controller
                     'errors' => $validator->errors()
                 ], 400);
         }
+        
+        //Check for throttling count
+        if ($this->hasTooManyLoginAttempts($request)) {
+            $this->fireLockoutEvent($request);
+            return response()->json(['response' =>'error','message' => 'Too many logins'], 400);
+        }        
 
         try {
             if (!$token = JWTAuth::attempt($credentials,['exp' => Carbon::now()->addMinutes($tokenLife)->timestamp])) {
+                $this->incrementLoginAttempts($request); //Increments throttle count
                 return response()->json([
                     'response' => 'error',
                     'message' => 'invalid_email_or_password',

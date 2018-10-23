@@ -72,7 +72,6 @@
     @if($result ==1 )
         <h2>Merci d'avoir confirme votre adresse</h2>
          <p>Acceder au site en cliquant sur le lien suivant</p>
-         <p>{{$url}}</p>
          <a href="{{$url}}">Acceder au site</a>
     @else
         <h2>Probleme de validation d'adresse email</h2>
