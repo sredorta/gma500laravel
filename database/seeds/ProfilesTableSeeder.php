@@ -51,24 +51,25 @@ class ProfilesTableSeeder extends Seeder
         //ROLE ASSIGNMENT
         //Assing now randomly 30 members
         for ($i = 0; $i < $membersCount; $i++) {
-            $profile = Profile::find(mt_rand(0,$usersCount-1));
+            $id = mt_rand(1,$usersCount);
+            $profile = Profile::find($id);
             $profile->roles()->attach(1);
         }
 
         //Asign now randomly 5 bureau
         for ($i = 0; $i < $bureauCount; $i++) {
-            $profile = Profile::find(mt_rand(0,$usersCount));
+            $profile = Profile::find(mt_rand(1,$usersCount));
             $profile->roles()->attach(2);
         }
 
         //Asign now randomly the roles Président...        
-        $profile = Profile::find(rand(0,$usersCount));
+        $profile = Profile::find(rand(1,$usersCount));
         $profile->roles()->attach(3);
-        $profile = Profile::find(mt_rand(0,$usersCount));
+        $profile = Profile::find(mt_rand(1,$usersCount));
         $profile->roles()->attach(4);
-        $profile = Profile::find(mt_rand(0,$usersCount));
+        $profile = Profile::find(mt_rand(1,$usersCount));
         $profile->roles()->attach(5);      
-        $profile = Profile::find(mt_rand(0,$usersCount));
+        $profile = Profile::find(mt_rand(1,$usersCount));
         $profile->roles()->attach(6);                
     }
 }

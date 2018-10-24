@@ -8,6 +8,8 @@ use Carbon\Carbon;
 use Validator;
 use JWTAuth;
 use App\User;
+use App\Profile;
+use App\Role;
 use App\Config\constants;
 use Illuminate\Support\Facades\Mail;
 use Config;
@@ -31,17 +33,17 @@ class ApiController extends Controller
     //
     //  register:
     //
-    //  We create the new user and send email to validate email account
+    //  We create the new profile and a new 'standard' user and send email to validate email account
     //  we then add notification to user of welcome
-    //  Finally we redirect to login
+    //  Finally we redirect to home
     //
     ////////////////////////////////////////////////////////////////////////////////////////
     public function register(Request $request)
     {
-
+        //Check if user already registerd in the Profiles
         $validator = Validator::make($request->all(), [
-            'email' => 'required|string|email|max:255|unique:users',
-            'mobile' => 'required|unique:users'
+            'email' => 'required|string|email|max:255|unique:profiles',
+            'mobile' => 'required|unique:profiles'
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -49,48 +51,63 @@ class ApiController extends Controller
                 'message' => 'user_already_registered'
             ],400);
         }       
+        //Check for all parameters
         $validator = Validator::make($request->all(), [
-            'email' => 'required|string|email|max:255|unique:users',
+            'email' => 'required',
             'firstName' => 'required',
             'lastName' => 'required',
-            'mobile' => 'required|unique:users',
+            'mobile' => 'required',
             'password'=> 'required'
         ]);
         if ($validator->fails()) {
-            return response()->json($validator->errors(),400);
+            return response()
+                ->json([
+                    'response' => 'error',
+                    'message' => 'validation_failed',
+                    'errors' => $validator->errors()
+                ], 400);            
         }
-        $emailkey = Str::random(50);
-        $user = User::create([
+        //FIRST: we create a Profile
+        $profile= Profile::create([
             'firstName' => $request->get('firstName'),           
             'lastName' => $request->get('lastName'),
             'mobile' => $request->get('mobile'),
             'email' => $request->get('email'),
-            'password' =>   Hash::make($request->get('password'), ['rounds' => 12]),
-            'emailValidationKey' => $emailkey,
-            'avatar' => 'url(' . $request->get('avatar') . ')'
+            'avatar' => 'url(' . $request->get('avatar') . ')',
+            'emailValidationKey' => Str::random(50),
+            'restoreKey' => Str::random(50)
         ]);
+        //We don't assign any Role as user has only 'standard' access when creating it
 
-        //Send email with validation key
+        //SECOND: we create the standard User (account)
+        User::create([
+            'profile_id' => $profile->id,
+            'email' => $profile->email,
+            'password' => Hash::make('Secure0', ['rounds' => 12]),
+            'access' => 'standard'
+        ]);        
+
+        //THIRD: Send email with validation key
         $data = [
-            'name' =>  $user->firstName,
+            'name' =>  $profile->firstName,
             'key' => Config::get('constants.API_URL') . '/api/auth/emailvalidate?id=' . 
-                    $user->id  .
+                    $profile->id  .
                     '&key=' .
-                    $user->emailValidationKey
+                    $profile->emailValidationKey
         ];
 
-        Mail::send('emails.validateemail',$data, function($message) use ($user)
+        Mail::send('emails.validateemail',$data, function($message) use ($profile)
         {
             $message->from(Config::get('constants.EMAIL_FROM_ADDRESS'), Config::get('constants.EMAIL_FROM_NAME'));
             $message->replyTo(Config::get('constants.EMAIL_NOREPLY'));
-            $message->to($user->email);
+            $message->to($profile->email);
             $message->subject("GMA500: Confirmation de votre adresse électronique");
         });   
 
         //Add user notification
 
-        //Return the token
-        $object = (object) ['email' => $user->email, 'id' => $user->id];
+        //FINALLY:: Return ok code
+        $object = (object) ['email' => $profile->email, 'id' => $profile->id];
         return response()->json($object, 200);
     }
     
@@ -112,7 +129,8 @@ class ApiController extends Controller
 
         $validator = Validator::make($credentials, [
             'email' => 'required|email',
-            'password' => 'required'
+            'password' => 'required|min:4',
+            'access' => 'nullable|standard|member|admin',
         ]);
         //Define token lifeTime
         if ($request->keepconnected) {
@@ -133,11 +151,37 @@ class ApiController extends Controller
         //Check for throttling count
         if ($this->hasTooManyLoginAttempts($request)) {
             $this->fireLockoutEvent($request);
-            return response()->json(['response' =>'error','message' => 'Too many logins'], 400);
+            return response()->json(['response' =>'error','message' => 'too_many_logins'], 400);
         }        
 
+        //If access is not provided and we have multiple accounts return the list of available accounts
+        if ($request->access == null && User::where('email', $request->email)->count()>1) {
+            $access = User::where('email', $request->email)->select('access')->get()->pluck('access');
+            return response()->json([
+                'response' => 'multiple_access',
+                'message' => $access->toArray(),
+            ],200);
+        }
+
         try {
-            if (!$token = JWTAuth::attempt($credentials,['exp' => Carbon::now()->addMinutes($tokenLife)->timestamp])) {
+            //Get the user and store it in the payload
+            if ($request->access !== null) {
+            $user = User::where('email', $request->email)->where('access', $request->access)->first();
+            } else {
+                $user = User::where('email', $request->email)->first();
+            }
+            //Check for credentials
+            if (($user->email != $request->get('email'))|| (Hash::make($user->password, ['rounds' => 12]) != $request->get('password'))) {
+                return response()->json([
+                    'response' => 'invalid credentails',
+                    'message' => Hash::make($user->password, ['rounds' => 12]),
+                ],400);
+            }
+            //Somehow here the attempt is getting the first user and using it !!!!!!!!!!!!!!!!!
+            //Need to debug here !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+            $customClaims = ['id'=> $user->id, 'access' => $request->access, 'exp' => Carbon::now()->addMinutes($tokenLife)->timestamp];
+            if (!$token = JWTAuth::attempt($credentials,$customClaims)) {
                 $this->incrementLoginAttempts($request); //Increments throttle count
                 return response()->json([
                     'response' => 'error',
@@ -150,10 +194,11 @@ class ApiController extends Controller
                 'message' => 'failed_to_create_token',
             ],401);
         }
-        //Check if isEmailValidated and if not invalidate token and return error
+        //Check if isEmailValidated in the Profile if not invalidate token and return error
         JWTAuth::setToken($token) ;
         $user = JWTAuth::toUser();
-        if ($user->isEmailValidated == 0) {
+        $profile = Profile::find($user->profile_id);
+        if ($profile->isEmailValidated == 0) {
             JWTAuth::invalidate($token);
             return response()->json([
                 'response' => 'error',
@@ -174,12 +219,21 @@ class ApiController extends Controller
     //  If is valid then we return the user as json else empty
     //
     ////////////////////////////////////////////////////////////////////////////////////////
-    public function getAuthUser(Request $request){    
+    public function getAuthUser(Request $request){
         if ($request->bearerToken()=== null) {
             return response()->json(null,200);
         }
+
         JWTAuth::setToken($request->bearerToken()) ;
-        $user = JWTAuth::toUser();
+
+        $payload = JWTAuth::parseToken()->getPayload();
+        // then either of
+        //$payload = ['id'=> $payload->get('id'), 'access' => $payload->get('access')];
+        
+        $user = User::find($payload->get('id'));
+        $profile = Profile::find($user->profile_id);
+        $profile->access = $payload->get('access');
+        //We need here to return more data, like roles and current access account
         return response()->json($user,200);    
     }
 
@@ -269,16 +323,16 @@ class ApiController extends Controller
             return view('emailvalidation')->with('result',0);
         }        
         //Check that we have user with the requested id
-        $user = User::where('id', '=', $request->get('id'))->where('emailValidationKey','=',$request->get('key'));
-        if (!$user->count()) {
+        $profile = Profile::where('id', '=', $request->get('id'))->where('emailValidationKey','=',$request->get('key'));
+        if (!$profile->count()) {
             return view('emailvalidation')->with('result',0);
         }
         //We are correct here so we update 
-        $user = $user->first();
+        $profile = $profile->first();
         //Regenerate a new key just in case we ask a new email
-        /////$user->emailValidationKey = Str::random(50);
-        $user->isEmailValidated = 1;
-        $user->save();
+        /////$profile->emailValidationKey = Str::random(50);
+        $profile->isEmailValidated = 1;
+        $profile->save();
         
         return view('emailvalidation')->with('result',1)->with('url',Config::get('constants.SITE_URL'));
     }
