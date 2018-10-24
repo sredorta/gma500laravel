@@ -16,18 +16,11 @@ class CreateUsersTable extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('firstName');
-            $table->string('lastName');
-            $table->string('email')->unique(); //Email max length is 191 chars and cannot be changed
-            $table->string('mobile')->unique();
-            $table->string('avatar',14000); //Depends on avatar size 
-            $table->boolean('isMember')->default(false);
-            $table->boolean('isBoard')->default(false);
-            $table->boolean('isBureau')->default(false);
-            $table->string('title')->nullable()->default(null);
+            $table->integer('profile_id')->unsigned();
+            $table->foreign('profile_id')->references('id')->on('profiles')->onDelete('cascade');   
+            $table->string('email',255); //Not unique as we can have several users (accounts) to same Profile (users)
             $table->string('password',255);
-            $table->boolean('isEmailValidated')->default(false);
-            $table->string('emailValidationKey',50)->default('default');
+            $table->string('access',50)->default('standard');
             $table->timestamps();
         });
     }

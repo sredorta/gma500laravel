@@ -20,12 +20,28 @@ class RolesTableSeeder extends Seeder
              'description' => 'Compte utilizateur non inscrit au club',
          ]);*/
          Role::create([
-            'name' => 'member',
-            'description' => 'Compte utilizateur inscrit au club',
+            'name' => 'Membre',
+            'description' => 'Membre du club inscrit',
         ]);     
         Role::create([
-            'name' => 'admin',
-            'description' => 'Compte administrateur',
+            'name' => 'Bureau',
+            'description' => 'Membre du bureau',
         ]);                
+        Role::create([
+            'name' => 'Président',
+            'description' => 'Président du club',
+        ]);   
+        Role::create([
+            'name' => 'VicePrésident',
+            'description' => 'VicePrésident du club',
+        ]);   
+        Role::create([
+            'name' => 'Sécretaire',
+            'description' => 'Sécretaire du club',
+        ]);                           
+        Role::create([
+            'name' => 'Trésorier',
+            'description' => 'Trésorier du club',
+        ]);            
     }
 }

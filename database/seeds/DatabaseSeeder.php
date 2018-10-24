@@ -20,11 +20,12 @@ class DatabaseSeeder extends Seeder
 		DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
          $this->call([
-                    RolesTableSeeder::class,            
+                    RolesTableSeeder::class,
+                    ProfilesTableSeeder::class,            
                     UsersTableSeeder::class,
-                    UsersRolesPivotTableSeeder::class,
                     ConfigProductCathegorySeeder::class,
-                    ConfigProductTypeSeeder::class]);
+                    ConfigProductTypeSeeder::class
+                    ]);
 		// supposed to only apply to a single connection and reset it's self
 		// but I like to explicitly undo what I've done for clarity
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');               

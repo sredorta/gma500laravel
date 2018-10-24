@@ -1,21 +1,21 @@
 <?php
 
 namespace App;
-
+use App\Profile;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+
+// USER (To be seen as account)
+//  One user belongs to ONE PROFILE (user)
+
 
 class User extends Authenticatable 
 {
     use Notifiable;
 
     //Define Role as a user to Many
-    public function roles() {
-        return $this->belongsToMany('App\Role');
-    }
-
-    public function hasAccess($access) {
-        return !$this->roles()->where('name','=',$access)->get()->isEmpty();
+    public function profile() {
+        return $this->belongsTo('App\Profile');
     }
 
 
@@ -25,7 +25,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'firstName','lastName', 'email', 'mobile','avatar','isMember','isBureau', 'isBoard', 'title','password','isEmailValidated','emailValidationKey'
+        'profile_id','email','password','access'
     ];
 
     /**
@@ -34,15 +34,15 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password','emailValidationKey'
+        'password'
     ];
 
     //User delete from db
     public function delete()
     {
         // delete all related roles (needs to be done with all related tables)
-        $this->roles()->delete();
-        // delete the user
+        //$this->roles()->delete();
+        // delete the user (account)
         return parent::delete();
     }
 
@@ -51,13 +51,3 @@ class User extends Authenticatable
 
 
 }
-/*email: string;
-mobile: string;
-password: string;
-firstName: string;
-lastName: string;
-avatar: any;
-roles: string[] = [];   //Member, president...
-isLoggedIn : boolean = false;
-isValidated : boolean = false;
-groups : string[] = ["none"]*/
