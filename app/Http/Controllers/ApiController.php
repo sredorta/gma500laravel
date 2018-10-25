@@ -130,7 +130,7 @@ class ApiController extends Controller
         $validator = Validator::make($credentials, [
             'email' => 'required|email',
             'password' => 'required|min:4',
-            'access' => 'nullable|standard|member|admin',
+            'access' => 'nullable|min:3'
         ]);
         //Define token lifeTime
         if ($request->keepconnected) {
@@ -170,22 +170,28 @@ class ApiController extends Controller
             } else {
                 $user = User::where('email', $request->email)->first();
             }
-            //Check for credentials
-            if (($user->email != $request->get('email'))|| (Hash::make($user->password, ['rounds' => 12]) != $request->get('password'))) {
+            //Check that we got at least one user
+            if ($user == null) {
                 return response()->json([
-                    'response' => 'invalid credentails',
-                    'message' => Hash::make($user->password, ['rounds' => 12]),
+                    'response' => 'error',
+                    'message' => 'invalid_email_or_password'                                 
+                ],400);                
+            }
+            //Check for credentials
+            if (($user->email !== $request->get('email'))|| !Hash::check($request->get('password'), $user->password)) {
+                return response()->json([  
+                    'response' => 'error',
+                    'message' => 'invalid_email_or_password'                                
                 ],400);
             }
-            //Somehow here the attempt is getting the first user and using it !!!!!!!!!!!!!!!!!
-            //Need to debug here !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+            //We use user id because is unique for credentials
+            $credentials = ['id' => $user->id, 'password'=> $request->get('password')];
             $customClaims = ['id'=> $user->id, 'access' => $request->access, 'exp' => Carbon::now()->addMinutes($tokenLife)->timestamp];
             if (!$token = JWTAuth::attempt($credentials,$customClaims)) {
                 $this->incrementLoginAttempts($request); //Increments throttle count
                 return response()->json([
                     'response' => 'error',
-                    'message' => 'invalid_email_or_password',
+                    'message' => 'invalid_email_or_password'
                 ],401);
             }
         } catch (JWTAuthException $e) {
@@ -225,16 +231,13 @@ class ApiController extends Controller
         }
 
         JWTAuth::setToken($request->bearerToken()) ;
-
+        //Get user id from the payload
         $payload = JWTAuth::parseToken()->getPayload();
-        // then either of
-        //$payload = ['id'=> $payload->get('id'), 'access' => $payload->get('access')];
-        
         $user = User::find($payload->get('id'));
-        $profile = Profile::find($user->profile_id);
+        //Return all data
+        $profile = Profile::with('roles')->find($user->profile_id);
         $profile->access = $payload->get('access');
-        //We need here to return more data, like roles and current access account
-        return response()->json($user,200);    
+        return response()->json($profile,200);    
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////
@@ -263,7 +266,8 @@ class ApiController extends Controller
     ////////////////////////////////////////////////////////////////////////////////////////
     public function resetPassword(REquest $request) {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email'
+            'email' => 'required|email',
+            'access' => 'nullable|min:3'
         ]);        
         //Check parameters
         if ($validator->fails()) {
@@ -273,26 +277,39 @@ class ApiController extends Controller
                     'message' => 'validation_failed'
                 ], 400);
         }
-
-        //Check that we have user with the requested id
-        $user = User::where('email', '=', $request->get('email'));
-        if (!$user->count()) {
+        //If access is not provided and we have multiple accounts return the list of available accounts
+        if ($request->access == null && User::where('email', $request->email)->count()>1) {
+            $access = User::where('email', $request->email)->select('access')->get()->pluck('access');
+            return response()->json([
+                'response' => 'multiple_access',
+                'message' => $access->toArray(),
+            ],200);
+        }
+        //Get the user
+        if ($request->access !== null) {
+            $user = User::where('email', $request->email)->where('access', $request->access)->first();
+        } else {
+            $user = User::where('email', $request->email)->first();
+        }
+        //Check that we have user with the requested email/access
+        if ($user == null) {
             return response()
                 ->json([
                     'response' => 'error',
                     'message' => 'email_not_found'
                 ], 400);          
         }
-        //We get the user 
-        $user = $user->first();
         //Regenerate a new password
         $newPass = $this->_generatePassword(10);
         $user->password = Hash::make($newPass, ['rounds' => 12]);
         $user->save();
+        //Get the profile from the user
+        $profile = Profile::find($user->profile_id);
         //Send email with new password
         $data = [
-            'name' =>  $user->firstName,
-            'password' => $newPass
+            'name' =>  $profile->firstName,
+            'password' => $newPass,
+            'access' => $user->access
         ];        
         Mail::send('emails.resetpassword',$data, function($message) use ($user)
         {

@@ -67,9 +67,9 @@
         </style>
     </head>
   <body>
-    <h2>Demande de nouveau mot de passe</h2>
+    <h2>Demande de nouveau mot de passe pour votre compte</h2>
     <p>{{$name}}, votre nouveau mot de passe est: <span style="font-weight:bold">{{$password}}</span></p>
-
+    <p>Ce mot de passe est utilizable pour l'acces' : {{$access}}</p>
     <div style="margin-top:40px">
       <small>*** Ce message est généré automatiquement. Merci de ne pas y répondre.***</small>
     </div>
