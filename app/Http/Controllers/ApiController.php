@@ -186,7 +186,7 @@ class ApiController extends Controller
             }
             //We use user id because is unique for credentials
             $credentials = ['id' => $user->id, 'password'=> $request->get('password')];
-            $customClaims = ['id'=> $user->id, 'access' => $request->access, 'exp' => Carbon::now()->addMinutes($tokenLife)->timestamp];
+            $customClaims = ['id'=> $user->id, 'exp' => Carbon::now()->addMinutes($tokenLife)->timestamp];
             if (!$token = JWTAuth::attempt($credentials,$customClaims)) {
                 $this->incrementLoginAttempts($request); //Increments throttle count
                 return response()->json([
@@ -226,7 +226,7 @@ class ApiController extends Controller
     //
     ////////////////////////////////////////////////////////////////////////////////////////
     public function getAuthUser(Request $request){
-        if ($request->bearerToken()=== null) {
+        if ($request->bearerToken() === null) {
             return response()->json(null,200);
         }
 
@@ -236,7 +236,7 @@ class ApiController extends Controller
         $user = User::find($payload->get('id'));
         //Return all data
         $profile = Profile::with('roles')->find($user->profile_id);
-        $profile->access = $payload->get('access');
+        $profile->access = $user->access;
         return response()->json($profile,200);    
     }
 
@@ -331,7 +331,7 @@ class ApiController extends Controller
     //  we then set isEmailValidated to true
     //
     ////////////////////////////////////////////////////////////////////////////////////////
-    public function emailValidate(REquest $request) {
+    public function emailValidate(Request $request) {
         $validator = Validator::make($request->all(), [
             'id' => 'required',
             'key' => 'required'
@@ -370,9 +370,107 @@ class ApiController extends Controller
                 $str .= $keyspace[random_int(0, $max)];
             }
             }
+            //Add minimum criteria to pass front-End control
+            $str = $str . 'Za8';
             return $str;
     }
 
+    /////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //  removeAccount:
+    //
+    //  Invalidates the token
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////
+    public function removeAccount(Request $request){
+        if ($request->bearerToken()=== null) {
+            return response()
+                ->json([
+                    'response' => 'error',
+                    'message' => 'token_expected'
+                ], 400);
+        }
+        $token = $request->bearerToken(); 
+        JWTAuth::setToken($token) ;
+        JWTAuth::parseToken()->authenticate();
+        $payload = JWTAuth::parseToken()->getPayload();
+        $user = User::find($payload->get('id'));
+        $profile = Profile::with('roles')->find($user->profile_id);
+        //Check if profile has other users (accounts) if not remove associated data (roles,notifications,messages...)
+        if ($profile->users()->get()->count() == 1) {
+            $profile->deleteAssociatedData();
+        }
+        //Delete the user and invalidate the token
+        $user->delete();
+        JWTAuth::invalidate($request->bearerToken());
 
+        //Return 
+        return response()
+            ->json(null, 200);           
+    }
 
+    /////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //  restoreAccount:
+    //
+    //  When a profile has no users(accounts) we still can restore the account
+    //  All associated data like roles, notifications... has been removed but profile is there
+    //
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////
+    public function restoreAccount(Request $request){
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'mobile' => 'required'
+        ]);        
+        //Check parameters
+        if ($validator->fails()) {
+            return response()
+                ->json([
+                    'response' => 'error',
+                    'message' => 'validation_failed'
+                ], 400);
+        }
+        //Verify that there is a profile with such email and phone
+        $profiles = Profile::where('email', $request->email)->where('mobile', $request->mobile);
+        if ($profiles->count()==0) {
+            return response()
+                ->json([
+                    'response' => 'error',
+                    'message' => 'profile_not_found'
+                ], 400);
+        }
+        //Check that the profile has no users
+        if ($profiles->first()->users()->count() !== 0) {
+            return response()
+            ->json([
+                'response' => 'error',
+                'message' => 'account_exists'
+            ], 200);
+
+        }
+        //If we got here we can now create the User with minimum access, no roles...
+        $profile = $profiles->first();
+        $newPass = $this->_generatePassword(10);
+        $user = User::create([
+            'profile_id' => $profile->id,
+            'email' => $profile->email,
+            'password' => Hash::make($newPass, ['rounds' => 12]),
+            'access' => 'Pré-inscrit'
+        ]);
+        //Send email with new password
+        $data = [
+            'name' =>  $profile->firstName,
+            'password' => $newPass
+        ];   
+        Mail::send('emails.restoreAccount',$data, function($message) use ($user)
+        {
+            $message->from(Config::get('constants.EMAIL_FROM_ADDRESS'), Config::get('constants.EMAIL_FROM_NAME'));
+            $message->replyTo(Config::get('constants.EMAIL_NOREPLY'));
+            $message->to($user->email);
+            $message->subject("GMA500: Récuperation de compte");
+        });        
+
+        return response()->json(null, 200);            
+    }
 }

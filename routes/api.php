@@ -30,7 +30,9 @@ use App\User;
         Route::get('auth/user', 'ApiController@getAuthUser');   //Return user from token
         Route::get('auth/emailvalidate', 'ApiController@emailValidate');   //Return user from token
         Route::post('auth/resetpassword', 'ApiController@resetPassword');   //Resets password
-
+        Route::get('auth/removeaccount', 'ApiController@removeAccount');   //Removes the account given by the token
+        Route::post('auth/restoreaccount', 'ApiController@restoreAccount');   //Creates one account on a profile without Users
+  
         Route::post('users/indexes' , 'UserController@getUserIndexes');  //Return indexes of members
         Route::get('users/{id}', 'UserController@getUserById');
     

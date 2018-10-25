@@ -20,7 +20,7 @@ class CreateUsersTable extends Migration
             $table->foreign('profile_id')->references('id')->on('profiles')->onDelete('cascade');   
             $table->string('email',255); //Not unique as we can have several users (accounts) to same Profile (users)
             $table->string('password',255);
-            $table->string('access',50)->default('standard');
+            $table->string('access',50)->default('Pré-inscrit');
             $table->timestamps();
         });
     }

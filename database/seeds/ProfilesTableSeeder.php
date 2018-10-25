@@ -43,7 +43,7 @@ class ProfilesTableSeeder extends Seeder
                 'mobile' => $phone,
                 'email' => 'sergi.redorta' . $i . '@kubiiks.com',
                 'avatar' => $avatars[mt_rand(0,9)],
-                //'password' => Hash::make('Secure' . $i, ['rounds' => 12]),
+                'isEmailValidated' => 1,
                 'emailValidationKey' => Str::random(50),
                 'restoreKey' => Str::random(50)
             ]);
@@ -53,6 +53,7 @@ class ProfilesTableSeeder extends Seeder
         for ($i = 0; $i < $membersCount; $i++) {
             $id = mt_rand(1,$usersCount);
             $profile = Profile::find($id);
+            $profile->roles()->detach(1);
             $profile->roles()->attach(1);
         }
 

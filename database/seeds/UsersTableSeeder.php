@@ -26,7 +26,7 @@ class UsersTableSeeder extends Seeder
                 'profile_id' => $i,
                 'email' => $profile->email,
                 'password' => Hash::make('Secure0', ['rounds' => 12]),
-                'access' => 'standard'
+                'access' => 'Pré-inscrit'
             ]);
         }
         //Switch all Profiles having a "member" role to 'member' access
@@ -37,7 +37,7 @@ class UsersTableSeeder extends Seeder
         )->get();
         foreach ($profiles as $profile) {
             $user = User::where('profile_id', $profile->id)->get()->first();
-            $user->access = "member";
+            $user->access = "Membre";
             $user->password = Hash::make('Member0', ['rounds' => 12]);
             $user->save();        
         }
@@ -50,7 +50,7 @@ class UsersTableSeeder extends Seeder
                     'profile_id' => $user->profile_id,
                     'email' => $user->email,
                     'password' => Hash::make('Admin0', ['rounds' => 12]),
-                    'access' => 'admin'
+                    'access' => 'Admin'
                 ]);
                 $count++;        
             }   

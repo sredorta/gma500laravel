@@ -25,6 +25,12 @@ class Profile extends Model
         return $this->hasMany('App\User');
     }
 
+    //Remove all profile associated data but not the profile itself
+    public function deleteAssociatedData() {
+        $this->roles()->detach();   //Detach all roles of Profile
+        //Add here notifications, mssgs...
+        return null;
+    }
 
     /**
      * The attributes that are mass assignable.
