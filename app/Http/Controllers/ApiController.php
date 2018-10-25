@@ -74,8 +74,7 @@ class ApiController extends Controller
             'mobile' => $request->get('mobile'),
             'email' => $request->get('email'),
             'avatar' => 'url(' . $request->get('avatar') . ')',
-            'emailValidationKey' => Str::random(50),
-            'restoreKey' => Str::random(50)
+            'emailValidationKey' => Str::random(50)
         ]);
         //We don't assign any Role as user has only 'standard' access when creating it
 
@@ -235,7 +234,7 @@ class ApiController extends Controller
         $payload = JWTAuth::parseToken()->getPayload();
         $user = User::find($payload->get('id'));
         //Return all data
-        $profile = Profile::with('roles')->find($user->profile_id);
+        $profile = Profile::with('roles')->with('notifications')->find($user->profile_id);
         $profile->access = $user->access;
         return response()->json($profile,200);    
     }

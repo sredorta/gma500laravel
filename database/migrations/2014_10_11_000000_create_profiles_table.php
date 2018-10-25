@@ -22,7 +22,6 @@ class CreateProfilesTable extends Migration
             $table->string('avatar',14000); //Depends on avatar size 
             $table->boolean('isEmailValidated')->default(false);
             $table->string('emailValidationKey',50)->default('default');
-            $table->string('restoreKey',50)->default('default');
             $table->timestamps();            
         });
     }

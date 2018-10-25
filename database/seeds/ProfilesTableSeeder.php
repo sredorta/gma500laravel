@@ -44,8 +44,7 @@ class ProfilesTableSeeder extends Seeder
                 'email' => 'sergi.redorta' . $i . '@kubiiks.com',
                 'avatar' => $avatars[mt_rand(0,9)],
                 'isEmailValidated' => 1,
-                'emailValidationKey' => Str::random(50),
-                'restoreKey' => Str::random(50)
+                'emailValidationKey' => Str::random(50)
             ]);
         }
         //ROLE ASSIGNMENT

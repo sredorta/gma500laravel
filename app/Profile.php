@@ -2,6 +2,7 @@
 
 namespace App;
 use App\User;
+use App\Notification;
 use Illuminate\Database\Eloquent\Model;
 
 // PROFILE (To be seen as user)
@@ -25,10 +26,18 @@ class Profile extends Model
         return $this->hasMany('App\User');
     }
 
+    //Return the notifications of the profile
+    public function notifications() {
+        return $this->hasMany('App\Notification');
+    }
+
     //Remove all profile associated data but not the profile itself
     public function deleteAssociatedData() {
         $this->roles()->detach();   //Detach all roles of Profile
+        $this->notifications()->delete();
         //Add here notifications, mssgs...
+
+        
         return null;
     }
 
@@ -38,7 +47,7 @@ class Profile extends Model
      * @var array
      */
     protected $fillable = [
-        'firstName','lastName', 'email', 'mobile','avatar','isEmailValidated','emailValidationKey','restoreKey'
+        'firstName','lastName', 'email', 'mobile','avatar','isEmailValidated','emailValidationKey'
     ];
 
     /**
@@ -47,7 +56,7 @@ class Profile extends Model
      * @var array
      */
     protected $hidden = [
-        'restoreKey','emailValidationKey','isEmailValidated'
+        'emailValidationKey','isEmailValidated'
     ];
 
     //User delete from db
@@ -55,6 +64,7 @@ class Profile extends Model
     {
         // delete all related roles (needs to be done with all related tables)
         $this->roles()->delete();
+        $this->notifications()->delete();
         
         // We cannot delete the profile as we will be referencing it if user has posts,outings...
         return null;

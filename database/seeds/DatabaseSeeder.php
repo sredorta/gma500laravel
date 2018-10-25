@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
                     RolesTableSeeder::class,
                     ProfilesTableSeeder::class,            
                     UsersTableSeeder::class,
+                    NotificationsTableSeeder::class,
                     ConfigProductCathegorySeeder::class,
                     ConfigProductTypeSeeder::class
                     ]);
