@@ -10,9 +10,10 @@ use JWTAuth;
 use App\User;
 use App\Profile;
 use App\Role;
+use App\Notification;
 use App\Config\constants;
 use Illuminate\Support\Facades\Mail;
-use Config;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Foundation\Auth\ThrottlesLogins;
 use Illuminate\Foundation\Auth\AuthenticatesAndRegistersUsers;
 
@@ -76,15 +77,15 @@ class ApiController extends Controller
             'avatar' => 'url(' . $request->get('avatar') . ')',
             'emailValidationKey' => Str::random(50)
         ]);
-        //We don't assign any Role as user has only 'standard' access when creating it
+        //We don't assign any Role as user has only 'default' access when creating it
 
         //SECOND: we create the standard User (account)
-        User::create([
-            'profile_id' => $profile->id,
-            'email' => $profile->email,
-            'password' => Hash::make('Secure0', ['rounds' => 12]),
-            'access' => 'standard'
-        ]);        
+        $user = new User;
+        $user->email = $profile->email;
+        $user->password = Hash::make('Secure0', ['rounds' => 12]);
+        $user->access = Config::get('constants.ACCESS_DEFAULT');
+        $profile->users()->save($user);
+  
 
         //THIRD: Send email with validation key
         $data = [
@@ -104,6 +105,13 @@ class ApiController extends Controller
         });   
 
         //Add user notification
+        $notification = new Notification;
+        $notification->text = "Bienvenu au site du GMA. Vous etes pré-inscrit";
+        $notification->isRead = 0;
+        $profile->notifications()->save($notification);
+
+        //$role ->users() ->associate($user);
+        //$role ->save();
 
         //FINALLY:: Return ok code
         $object = (object) ['email' => $profile->email, 'id' => $profile->id];

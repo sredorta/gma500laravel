@@ -15,11 +15,11 @@ class CreateProfilesTable extends Migration
     {
         Schema::create('profiles', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('firstName');
-            $table->string('lastName');
+            $table->string('firstName',50);
+            $table->string('lastName',50);
             $table->string('email',100)->unique(); //Email max length is 191 chars and cannot be changed
-            $table->string('mobile')->unique();
-            $table->string('avatar',14000); //Depends on avatar size 
+            $table->string('mobile',10)->unique();
+            $table->string('avatar',16000); //Depends on avatar size 
             $table->boolean('isEmailValidated')->default(false);
             $table->string('emailValidationKey',50)->default('default');
             $table->timestamps();            

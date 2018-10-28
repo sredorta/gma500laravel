@@ -10,4 +10,7 @@ return [
     'EMAIL_NOREPLY' => 'no-reply@gma500.fr',
     'TOKEN_LIFE_SHORT' => 1,            //Time in minutes of token life when no keepconnected
     'TOKEN_LIFE_LONG'  => 120,          //Time in minutes of token life when keepconnected
+    'ACCESS_DEFAULT' => 'Pré-inscrit',
+    'ACCESS_MEMBER' => 'Membre',
+    'ACCESS_ADMIN' => 'Admin'
 ];

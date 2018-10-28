@@ -2,8 +2,10 @@
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Config;
 use App\User;
 use App\Profile;
+
 
 class UsersTableSeeder extends Seeder
 {
@@ -26,7 +28,7 @@ class UsersTableSeeder extends Seeder
                 'profile_id' => $i,
                 'email' => $profile->email,
                 'password' => Hash::make('Secure0', ['rounds' => 12]),
-                'access' => 'Pré-inscrit'
+                'access' => Config::get('constants.ACCESS_DEFAULT')
             ]);
         }
         //Switch all Profiles having a "member" role to 'member' access
@@ -37,7 +39,7 @@ class UsersTableSeeder extends Seeder
         )->get();
         foreach ($profiles as $profile) {
             $user = User::where('profile_id', $profile->id)->get()->first();
-            $user->access = "Membre";
+            $user->access = Config::get('constants.ACCESS_MEMBER');
             $user->password = Hash::make('Member0', ['rounds' => 12]);
             $user->save();        
         }
@@ -50,7 +52,7 @@ class UsersTableSeeder extends Seeder
                     'profile_id' => $user->profile_id,
                     'email' => $user->email,
                     'password' => Hash::make('Admin0', ['rounds' => 12]),
-                    'access' => 'Admin'
+                    'access' => Config::get('constants.ACCESS_DEFAULT')
                 ]);
                 $count++;        
             }   

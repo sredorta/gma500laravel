@@ -6,10 +6,12 @@ use Illuminate\Http\Request;
 use JWTAuth;
 use Validator;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Config;
 use App\Mail\ValidateEmail;
 use App\User;
 use App\Role;
-use Config;
+use App\Profile;
+
 
 class UserController extends Controller
 {
@@ -57,37 +59,53 @@ class UserController extends Controller
         }
         switch ($type) {
             case "bureau":
-                $users = User::where('isBureau','=',true)->orderBy('lastName')->pluck('id')->toArray();
+                $profiles = Profile::whereHas(
+                    'roles', function($q){
+                        $q->where('roles.id','=', 2);
+                    }
+                )->orderBy('lastName')->get()->pluck('id')->toArray();  
                 break;
             case "board" :
-                $users = User::where('isBoard','=',true)->orderBy('lastName')->pluck('id')->toArray();
+                $profiles = Profile::whereHas(
+                    'roles', function($q){
+                        $q->where('roles.id','>=', 3);
+                    }
+                )->orderBy('lastName')->get()->pluck('id')->toArray();
                 break;
-            case "member" :      
-                if ($this->isLogged($request)) {
-                    $users = User::where('isMember','=',true)->orderBy('lastName')->pluck('id')->toArray();
+            case "member" : 
+                $profiles = Profile::whereHas(
+                    'roles', function($q){
+                        $q->where('roles.id','=', 1);
+                    }
+                )->orderBy('lastName')->get()->pluck('id')->toArray();            
+                 /*if ($this->isLogged($request)) {
+
                 } else {
                     $users = [];
-                }
+                }*/
                 break;
             default:
-                $users = User::pluck('id')->toArray();
+                $profiles = Profile::pluck('id')->toArray();
         }
-        return response()->json($users,200);
+        return response()->json($profiles,200);
     }   
 
+    //
     public function getUserById(Request $request){
+        //TODO: chose which data we provide depending on access...
         $id = $request->id;
+        $profile = Profile::with('roles')->find($id);
 
-        if ($this->hasAccess($request,"member")) {
+      /*  if ($this->hasAccess($request,"member")) {
             $user = User::select('id','firstName','lastName','avatar','title','email', 'mobile')->find($id);
             return response()->json($user,200);
         }
         if ($this->hasAccess($request,"admin")) {
             $user = User::find($id);
             return response()->json($user,200);
-        }
-        $user = User::select('id','firstName','lastName','avatar','title')->find($id);
-        return response()->json($user,200);          
+        }*/
+        //$user = User::select('id','firstName','lastName','avatar','title')->find($id);
+        return response()->json($profile,200);          
 
     }   
 
