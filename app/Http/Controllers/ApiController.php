@@ -243,7 +243,9 @@ class ApiController extends Controller
         $user = User::find($payload->get('id'));
         //Return all data
         $profile = Profile::with('roles')->with('notifications')->find($user->profile_id);
+        $notifsCount = Notification::where('profile_id', $user->profile_id)->where('isRead', 0)->count();
         $profile->access = $user->access;
+        $profile->notifsUnreadCount = $notifsCount;
         return response()->json($profile,200);    
     }
 

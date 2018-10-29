@@ -52,7 +52,8 @@ class UserController extends Controller
     public function getUserIndexes(Request $request){
         $type = $request->type;
         $validator = Validator::make($request->all(), [
-            'type' => 'in:bureau,board,member,all'
+            'type' => 'required|in:bureau,board,member,all',
+            //'limit' => 'required|min:1|max:1000'
         ]);
         if ($validator->fails()) {
             return response()->json($validator->errors(),400);

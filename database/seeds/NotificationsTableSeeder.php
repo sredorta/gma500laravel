@@ -15,7 +15,7 @@ class NotificationsTableSeeder extends Seeder
     {
         $faker = \Faker\Factory::create();
         // Let's truncate our existing records to start from scratch.
-        Notification::truncate();
+        //Notification::truncate();
         $notif[0] = 'Bienvenu sur votre compte du GMA500';
         $notif[1] = 'Vous devez etre membre pour acceder aux autres functionalites';
         $notif[2] = 'Votre demande de membre a été accepter';

@@ -36,7 +36,8 @@ use App\User;
         //Notifications part
         Route::get('notifications/delete/{id}', 'NotificationController@delete');
         Route::get('notifications/markread/{id}', 'NotificationController@markAsRead');
-
+        Route::get('notifications/getAll', 'NotificationController@getAll');
+        
         Route::post('users/indexes' , 'UserController@getUserIndexes');  //Return indexes of members
         Route::get('users/{id}', 'UserController@getUserById');
     
