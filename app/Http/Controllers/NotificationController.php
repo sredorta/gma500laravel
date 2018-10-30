@@ -4,42 +4,40 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Notification;
-use JWTAuth;
+use Validator;
 
 class NotificationController extends Controller
 {
 
-    //Checks if we are currently logged in and returns user if we are and null if not
-    public function isLogged(Request $request) {
-        if ($request->bearerToken()=== null) {
-            return false;
-        }
-        //We need to remove the catch and redirect to loggin in production
-        //try {
-        JWTAuth::setToken($request->bearerToken()) ;
-        $result = JWTAuth::toUser();
-        //} catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
-        //    $result = null;
-        //}
-        return $result;
-    }
-
-
-
    //Delete the notification
-    public function delete($id)
+    public function delete(Request $request)
     {
-        Notification::find($id)->delete();
+        $id = $request->id;
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|numeric',
+        ]);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(),400);
+        }          
+
+        Notification::where('profile_id', $request->get('myProfile'))->find($id)->delete();
         return response()->json(null, 204);
     }
+
    //Delete the notification
-   public function markAsRead($id)
+   public function markAsRead(Request $request)
    {
-       $notification = Notification::find($id);
+        $id = $request->id;
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|numeric',
+        ]);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(),400);
+        }   
+
+       $notification = Notification::where('profile_id', $request->get('myProfile'))->find($id);
        $notification->isRead = true;
        $notification->save();
-       //echo 'done';
-       //$notification->save();
        return response()->json(null, 204);
    }    
 
@@ -47,10 +45,7 @@ class NotificationController extends Controller
    public function getAll(Request $request)
    {
        //We need to get current User
-       $user = $this->isLogged($request);
-       $notifications = Notification::where('profile_id', $user->profile_id)->orderBy('created_at','DESC')->get();
-       //echo 'done';
-       //$notification->save();
+       $notifications = Notification::where('profile_id', $request->get('myProfile'))->orderBy('created_at','DESC')->get();
        return response()->json($notifications, 200);
    }      
 }

@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use App\Cors;
 use App\Company;
 use App\User;
+//use App\authJWT;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,46 +17,41 @@ use App\User;
 |
 */
 
-/*Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
-});*/
+//Routes that works on any case, but we pass isLogged, access...
+Route::group(['middleware' => 'any'], function ($router) {
+    Route::get('auth/user', 'ApiController@getAuthUser');   //Return user from token
+    Route::post('users/indexes' , 'ProfileController@getProfileIndexesByRole');  //Return indexes of members
+    Route::post('users/data' , 'ProfileController@getProfileById');  //Get profile from id
+});    
 
-    Route::group([
-        'middleware' => ['cors']
-    ], function ($router) {
+//Only if we are not loggedIn
+Route::group(['middleware' => 'unregistered'], function ($router) {
+    Route::post('auth/login', 'ApiController@login');       //Login user from credentials
+    Route::post('auth/signup', 'ApiController@register');   //Create user and token from signup form 
+    Route::get('auth/emailvalidate', 'ApiController@emailValidate');   //Return user from token
+    Route::post('auth/resetpassword', 'ApiController@resetPassword');   //Resets password
+});
 
-        Route::post('auth/signup', 'ApiController@register');   //Create user and token from signup form 
-        Route::post('auth/login', 'ApiController@login');       //Login user from credentials
-        Route::post('auth/logout', 'ApiController@logout');      //Logout user from token invalidation
-        Route::get('auth/user', 'ApiController@getAuthUser');   //Return user from token
-        Route::get('auth/emailvalidate', 'ApiController@emailValidate');   //Return user from token
-        Route::post('auth/resetpassword', 'ApiController@resetPassword');   //Resets password
-        Route::get('auth/removeaccount', 'ApiController@removeAccount');   //Removes the account given by the token
-        Route::post('auth/restoreaccount', 'ApiController@restoreAccount');   //Creates one account on a profile without Users
-  
-        //Notifications part
-        Route::get('notifications/delete/{id}', 'NotificationController@delete');
-        Route::get('notifications/markread/{id}', 'NotificationController@markAsRead');
-        Route::get('notifications/getAll', 'NotificationController@getAll');
-        
-        Route::post('users/indexes' , 'UserController@getUserIndexes');  //Return indexes of members
-        Route::get('users/{id}', 'UserController@getUserById');
-    
-        Route::get('test', 'UserController@test');
+//We are registered as any access
+Route::group(['middleware' => 'registered'], function ($router) {
+    Route::post('auth/logout', 'ApiController@logout');      //Logout user from token invalidation
+    Route::get('auth/removeaccount', 'ApiController@removeAccount');   //Removes the account given by the token
+    //Notifications part
+    Route::post('notifications/delete', 'NotificationController@delete');
+    Route::post('notifications/markread', 'NotificationController@markAsRead');
+    Route::get('notifications/getAll', 'NotificationController@getAll');
+});
 
-    });
+//registered as member
+Route::group(['middleware' => 'member'], function ($router) {
+    Route::post('users/find' , 'ProfileController@findProfileByName');  //Get profile from id
+    Route::get('users/getmembers' , 'ProfileController@getAllMembers');  //Get profile from id
 
+});
 
-//Route::group(['middleware' => 'jwt-auth'], function () {
-    
-//});
-
-//Route::get('user', 'ApiController@getAuthUser');
-//    });
-//});
-
-
-
+//registered as admin
+Route::group(['middleware' => 'admin'], function ($router) {
+});
 
 
 //Product Cathegories

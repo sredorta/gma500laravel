@@ -4,6 +4,8 @@ namespace App;
 use App\User;
 use App\Notification;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
 
 // PROFILE (To be seen as user)
 //  This has to be seen as user table
@@ -70,5 +72,17 @@ class Profile extends Model
         return null;
     }
 
+
+    //Depending on request parameters that we have passed in the middleware
+    // we return the correct fields
+    public static function filterGet(Request $request) {
+        if ($request->get('myAccess') == Config::get('constants.ACCESS_MEMBER'))  {
+            return Profile::select('id','firstName','lastName','avatar','mobile','email');
+        } else if ($request->get('myAccess') == Config::get('constants.ACCESS_ADMIN')) {
+            return Profile::select('*');
+        } else {
+            return Profile::select('id','firstName','lastName','avatar');
+        }        
+    }
 
 }

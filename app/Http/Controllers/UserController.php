@@ -46,86 +46,8 @@ class UserController extends Controller
     }
 
 
-    ///////////////////////////////////////////////////////////////////////////////
-    //  NON AUTH RELATED
-    //////////////////////////////////////////////////////////////////////////////
-    public function getUserIndexes(Request $request){
-        $type = $request->type;
-        $validator = Validator::make($request->all(), [
-            'type' => 'required|in:bureau,board,member,all',
-            //'limit' => 'required|min:1|max:1000'
-        ]);
-        if ($validator->fails()) {
-            return response()->json($validator->errors(),400);
-        }
-        switch ($type) {
-            case "bureau":
-                $profiles = Profile::whereHas(
-                    'roles', function($q){
-                        $q->where('roles.id','=', 2);
-                    }
-                )->orderBy('lastName')->get()->pluck('id')->toArray();  
-                break;
-            case "board" :
-                $profiles = Profile::whereHas(
-                    'roles', function($q){
-                        $q->where('roles.id','>=', 3);
-                    }
-                )->orderBy('lastName')->get()->pluck('id')->toArray();
-                break;
-            case "member" : 
-                $profiles = Profile::whereHas(
-                    'roles', function($q){
-                        $q->where('roles.id','=', 1);
-                    }
-                )->orderBy('lastName')->get()->pluck('id')->toArray();            
-                 /*if ($this->isLogged($request)) {
 
-                } else {
-                    $users = [];
-                }*/
-                break;
-            default:
-                $profiles = Profile::pluck('id')->toArray();
-        }
-        return response()->json($profiles,200);
-    }   
-
-    //
-    public function getUserById(Request $request){
-        //TODO: chose which data we provide depending on access...
-        $id = $request->id;
-        $profile = Profile::with('roles')->find($id);
-
-      /*  if ($this->hasAccess($request,"member")) {
-            $user = User::select('id','firstName','lastName','avatar','title','email', 'mobile')->find($id);
-            return response()->json($user,200);
-        }
-        if ($this->hasAccess($request,"admin")) {
-            $user = User::find($id);
-            return response()->json($user,200);
-        }*/
-        //$user = User::select('id','firstName','lastName','avatar','title')->find($id);
-        return response()->json($profile,200);          
-
-    }   
-
-    public function test(Request $request) {
-        $data = [
-            'name' => 'Sergi',
-            'key' => Config::get('constants.API_URL') . '/api/auth/emailvalidate?id=5&key=roBcswk6qNlR7qoY7el1GI0cCT3oNcR5aapbKyJzojXOySDmV6'
-        ];
-        Mail::send('emails.validateemail',$data, function($message)
-        {
-            $message->from(Config::get('constants.EMAIL_FROM_ADDRESS'), Config::get('constants.EMAIL_FROM_NAME'));
-            $message->replyTo(Config::get('constants.EMAIL_NOREPLY'));
-            $message->to('sergi.redorta@hotmail.com');
-            $message->subject("GMA500: Confirmation de votre adresse électronique");
-        });   
-
-    }
-
-
+/*
     public function show($id)
     {
         $user = User::find($id);
@@ -155,7 +77,7 @@ class UserController extends Controller
         $product->delete();
         return response()->json(null, 204);
     }
-
+*/
 }
 /*
 200: OK. The standard success code and default option.

@@ -1,10 +1,11 @@
 <?php
 
 namespace App\Http\Middleware;
-
+use JWTAuth;
 use Closure;
+use App\User;
 
-class authJWT
+class Registered
 {
     /**
      * Handle an incoming request.
@@ -16,7 +17,14 @@ class authJWT
     public function handle($request, Closure $next)
     {
         try {
-            $user = JWTAuth::toUser($request->input('token'));
+            if ($request->bearerToken() === null) {
+                abort(401, 'You must be registered');
+            }    
+            JWTAuth::setToken($request->bearerToken()) ;
+            //Get user id from the payload
+            $payload = JWTAuth::parseToken()->getPayload();
+            $user = User::find($payload->get('id'));
+
         } catch (Exception $e) {
             if ($e instanceof \Tymon\JWTAuth\Exceptions\TokenInvalidException){
                 return response()->json(['error'=>'Token is Invalid']);
@@ -26,6 +34,9 @@ class authJWT
                 return response()->json(['error'=>'Something is wrong']);
             }
         }
+
+        //We should here send parameter profile_id to the route so that we don't need to find again
+        $request->attributes->add(['isLogged' => true, 'myProfile' => $user->profile_id, 'myAccess' => $user->access]);
         return $next($request);
 
     }
