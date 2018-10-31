@@ -49,8 +49,10 @@ Route::group(['middleware' => 'member'], function ($router) {
 
 });
 
-//registered as admin
+//Returns all data from all users including roles and accounts
 Route::group(['middleware' => 'admin'], function ($router) {
+    Route::get('admin/users' , 'ProfileController@adminGetUsers');
+    Route::get('admin/roles' , 'RoleController@getRoles');
 });
 
 

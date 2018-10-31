@@ -50,9 +50,6 @@ class ProfileController extends Controller
     }   
 
 
-
-
-
     public function getProfileById(Request $request){
         //TODO: chose which data we provide depending on access...
         $id = $request->id;
@@ -89,6 +86,17 @@ class ProfileController extends Controller
 
         return response()->json($name,200); 
     }
+
+
+    public function adminGetUsers(Request $request) {
+        $profiles = Profile::with('roles')->with('users')->orderBy('lastName')->get();
+        $profiles->each(function($profile) {
+                $profile->accounts = $profile->users;
+                unset($profile->users);
+        });
+        return response()->json($profiles->toArray(),200); 
+    }
+
 
 }
 
