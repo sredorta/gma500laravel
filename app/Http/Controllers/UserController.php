@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
 use JWTAuth;
 use Validator;
 use Illuminate\Support\Facades\Mail;
@@ -15,8 +18,90 @@ use App\Profile;
 
 class UserController extends Controller
 {
+    //Generate a random password
+    private function _generatePassword(
+        $length,
+        $keyspace = '01234567890123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        ) {
+            $str = '';
+            while(preg_match_all( "/[0-9]/", $str )<2) {
+            $str = '';  
+            $max = mb_strlen($keyspace, '8bit') - 1;
+            if ($max < 1) {
+                throw new Exception('$keyspace must be at least two characters long');
+            }
+            for ($i = 0; $i < $length; ++$i) {
+                $str .= $keyspace[random_int(0, $max)];
+            }
+            }
+            //Add minimum criteria to pass front-End control
+            $str = $str . 'Za8';
+            return $str;
+    }
 
-    //
+    //Adds a user to a profile
+    public function add(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'profile_id' => 'required|numeric',
+            'access' => 'required|string'
+        ]);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(),400);
+        }
+
+        $profile = Profile::find($request->profile_id);
+        $pass = $this->_generatePassword(10); //Generate new password for new account
+
+        $account = User::create([
+            'profile_id' => $profile->id,
+            'email' => $profile->email,
+            'password' => Hash::make($pass, ['rounds' => 12]),
+            'access' => $request->access
+        ]);
+        //Send email with new password
+        $data = [
+            'name' =>  $profile->firstName,
+            'password' => $pass,
+            'access' => $request->access
+        ];        
+        Mail::send('emails.newaccount',$data, function($message) use ($account)
+        {
+            $message->from(Config::get('constants.EMAIL_FROM_ADDRESS'), Config::get('constants.EMAIL_FROM_NAME'));
+            $message->replyTo(Config::get('constants.EMAIL_NOREPLY'));
+            $message->to($account->email);
+            $message->subject("GMA500: Votre nouveau compte " . $account->access );
+        });            
+        return response()->json($account,200); 
+    }
+
+    //Removes a user to a profile
+    public function remove(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'profile_id' => 'required|numeric',
+            'access' => 'required|string'
+        ]);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(),400);
+        }
+        //Remove the accounts
+        User::where("profile_id", $request->profile_id)->where("access", $request->access)->delete();
+        $profile = Profile::find($request->profile_id);
+        //Send email with new password
+        $access = $request->access;
+        $data = [
+            'name' =>  $profile->firstName,
+            'access' => $request->access
+        ];        
+        Mail::send('emails.removedaccount',$data, function($message) use ($profile, $access)
+        {
+            $message->from(Config::get('constants.EMAIL_FROM_ADDRESS'), Config::get('constants.EMAIL_FROM_NAME'));
+            $message->replyTo(Config::get('constants.EMAIL_NOREPLY'));
+            $message->to($profile->email);
+            $message->subject("GMA500: Compte " . $access . " suprimé" );
+        });            
+        return response()->json(null,204); 
+    }
+/*    //
     public function index()
     {
         return User::all();
@@ -44,7 +129,7 @@ class UserController extends Controller
         if ($result == null) return false;  //Token invalid
         return !$result->roles()->where('name','=',$access)->get()->isEmpty();
     }
-
+*/
 
 
 /*

@@ -4,42 +4,42 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Http\Request;
 use Validator;
-use App\Role;
+use App\Group;
 use App\Profile;
 
-class RoleController extends Controller
+
+class GroupController extends Controller
 {
-    //Get all roles available
-    public function getRoles(Request $request) {
-        $roles = Role::all();
-        return response()->json($roles->toArray(),200); 
+    public function getGroups(Request $request) {
+        $groups = Group::all();
+        return response()->json($groups->toArray(),200); 
     }
 
-    //Adds a role from a profile
+    //Adds a group from a profile
     public function add(Request $request) {
         $validator = Validator::make($request->all(), [
             'profile_id' => 'required|numeric',
-            'role_id' => 'required|numeric'
+            'group_id' => 'required|numeric'
         ]);
         if ($validator->fails()) {
             return response()->json($validator->errors(),400);
         }          
         $profile = Profile::find($request->profile_id);
-        $profile->roles()->attach($request->role_id);
+        $profile->groups()->attach($request->group_id);
         return response()->json(null,204); 
     }
 
-    //Removes a role from a profile
+    //Removes a group from a profile
     public function remove(Request $request) {
         $validator = Validator::make($request->all(), [
             'profile_id' => 'required|numeric',
-            'role_id' => 'required|numeric'
+            'group_id' => 'required|numeric'
         ]);
         if ($validator->fails()) {
             return response()->json($validator->errors(),400);
         }          
         $profile = Profile::find($request->profile_id);
-        $profile->roles()->detach($request->role_id);
+        $profile->groups()->detach($request->group_id);
         return response()->json(null,204); 
-    }        
+    }       
 }

@@ -89,7 +89,7 @@ class ProfileController extends Controller
 
 
     public function adminGetUsers(Request $request) {
-        $profiles = Profile::with('roles')->with('users')->orderBy('lastName')->get();
+        $profiles = Profile::with('roles')->with('users')->with('groups')->orderBy('lastName')->get();
         $profiles->each(function($profile) {
                 $profile->accounts = $profile->users;
                 unset($profile->users);

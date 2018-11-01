@@ -3,6 +3,7 @@
 namespace App;
 use App\User;
 use App\Notification;
+use App\Group;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
@@ -23,6 +24,11 @@ class Profile extends Model
         return $this->belongsToMany('App\Role');
     }
 
+    //Return the groups of the profile
+    public function groups() {
+        return $this->belongsToMany('App\Group');
+    }
+
     //Return the accounts of the profile
     public function users() {
         return $this->hasMany('App\User');
@@ -36,6 +42,7 @@ class Profile extends Model
     //Remove all profile associated data but not the profile itself
     public function deleteAssociatedData() {
         $this->roles()->detach();   //Detach all roles of Profile
+        $this->groups()->detach();
         $this->notifications()->delete();
         //Add here notifications, mssgs...
 

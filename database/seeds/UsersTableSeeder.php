@@ -52,7 +52,7 @@ class UsersTableSeeder extends Seeder
                     'profile_id' => $user->profile_id,
                     'email' => $user->email,
                     'password' => Hash::make('Admin0', ['rounds' => 12]),
-                    'access' => Config::get('constants.ACCESS_DEFAULT')
+                    'access' => Config::get('constants.ACCESS_ADMIN')
                 ]);
                 $count++;        
             }   
