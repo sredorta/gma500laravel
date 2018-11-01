@@ -16,7 +16,7 @@ class RoleController extends Controller
     }
 
     //Adds a role from a profile
-    public function add(Request $request) {
+    public function attachProfile(Request $request) {
         $validator = Validator::make($request->all(), [
             'profile_id' => 'required|numeric',
             'role_id' => 'required|numeric'
@@ -30,7 +30,7 @@ class RoleController extends Controller
     }
 
     //Removes a role from a profile
-    public function remove(Request $request) {
+    public function detachProfile(Request $request) {
         $validator = Validator::make($request->all(), [
             'profile_id' => 'required|numeric',
             'role_id' => 'required|numeric'
@@ -41,5 +41,33 @@ class RoleController extends Controller
         $profile = Profile::find($request->profile_id);
         $profile->roles()->detach($request->role_id);
         return response()->json(null,204); 
-    }        
+    }
+    
+    //create a new Role
+    public function create(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'name' => 'string|min:3|max:50',
+            'description' => 'required|min:10|max:500'
+        ]);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(),400);
+        }          
+        $role = Role::create([
+            'name' => $request->name,
+            'description' => $request->description
+        ]);     
+        return response()->json($role,200); 
+    }    
+     //delete a Role
+     public function delete(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|numeric'
+        ]);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(),400);
+        }          
+        //When a role is removed all attached roles in the pivot are removed !
+        Role::find($request->id)->delete();
+        return response()->json(null,203); 
+    }       
 }

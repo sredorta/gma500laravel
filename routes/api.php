@@ -54,8 +54,11 @@ Route::group(['middleware' => 'admin'], function ($router) {
     Route::get('admin/users' , 'ProfileController@adminGetUsers');  //Get all profiles
     Route::get('admin/roles' , 'RoleController@getRoles');          //Get all Roles
     Route::get('admin/groups' , 'GroupController@getGroups');       //Get all Groups
-    Route::post('admin/roles/add' , 'RoleController@add');          //Adds a role to a profile
-    Route::post('admin/roles/remove' , 'RoleController@remove');    //Removes a role to a profile
+    Route::post('admin/roles/attach' , 'RoleController@attachProfile');          //Adds a role to a profile
+    Route::post('admin/roles/detach' , 'RoleController@detachProfile');    //Removes a role to a profile
+    Route::post('admin/roles/create' , 'RoleController@create');    //Creates a new role
+    Route::post('admin/roles/delete' , 'RoleController@delete');    //Creates a new role
+
     Route::post('admin/groups/add' , 'GroupController@add');        //Adds a group to a profile
     Route::post('admin/groups/remove' , 'GroupController@remove');  //Removes a group to a profile    
     Route::post('admin/accounts/add' , 'UserController@add');       //Adds account to profile and sends email  

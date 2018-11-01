@@ -10,6 +10,7 @@ use App\Profile;
 
 class GroupController extends Controller
 {
+    //Get all groups
     public function getGroups(Request $request) {
         $groups = Group::all();
         return response()->json($groups->toArray(),200); 
