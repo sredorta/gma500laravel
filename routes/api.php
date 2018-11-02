@@ -34,8 +34,9 @@ Route::group(['middleware' => 'unregistered'], function ($router) {
 
 //We are registered as any access
 Route::group(['middleware' => 'registered'], function ($router) {
-    Route::post('auth/logout', 'ApiController@logout');      //Logout user from token invalidation
-    Route::get('auth/removeaccount', 'ApiController@removeAccount');   //Removes the account given by the token
+    Route::post('auth/logout', 'ApiController@logout');                 //Logout user from token invalidation
+    Route::post('auth/update', 'ApiController@update');                 //Updates profile
+    Route::get('auth/removeaccount', 'ApiController@removeAccount');    //Removes the account given by the token
     //Notifications part
     Route::post('notifications/delete', 'NotificationController@delete');
     Route::post('notifications/markread', 'NotificationController@markAsRead');

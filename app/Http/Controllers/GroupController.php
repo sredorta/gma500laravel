@@ -60,6 +60,7 @@ class GroupController extends Controller
         ]);     
         return response()->json($role,200); 
     }    
+    
      //delete a Role
      public function delete(Request $request) {
         $validator = Validator::make($request->all(), [

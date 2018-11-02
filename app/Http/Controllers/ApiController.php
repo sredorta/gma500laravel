@@ -82,11 +82,10 @@ class ApiController extends Controller
         //SECOND: we create the standard User (account)
         $user = new User;
         $user->email = $profile->email;
-        $user->password = Hash::make('Secure0', ['rounds' => 12]);
+        $user->password = Hash::make($request->get('password'), ['rounds' => 12]);
         $user->access = Config::get('constants.ACCESS_DEFAULT');
         $profile->users()->save($user);
   
-
         //THIRD: Send email with validation key
         $data = [
             'name' =>  $profile->firstName,
@@ -242,7 +241,7 @@ class ApiController extends Controller
         $payload = JWTAuth::parseToken()->getPayload();
         $user = User::find($payload->get('id'));
         //Return all data
-        $profile = Profile::with('roles')->with('notifications')->find($user->profile_id);
+        $profile = Profile::with('roles')->with('groups')->with('notifications')->find($user->profile_id);
         $notifsCount = Notification::where('profile_id', $user->profile_id)->where('isRead', 0)->count();
         $profile->access = $user->access;
         $profile->notifsUnreadCount = $notifsCount;
@@ -256,7 +255,6 @@ class ApiController extends Controller
     //  Invalidates the token
     //
     ////////////////////////////////////////////////////////////////////////////////////////
- 
     public function logout(Request $request){
         if ($request->bearerToken()=== null) {
             return response()->json(null,200);
@@ -264,6 +262,116 @@ class ApiController extends Controller
         JWTAuth::invalidate($request->bearerToken());
         return response()->json(null,200);
     }
+
+    /////////////////////////////////////////////////////////////////////////////////////////
+    //  update:
+    //      firstName or lastName or email or mobile, or avatar or (password_new and password_old)
+    //
+    //  We need to be registered and we update the requested field
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////
+    public function update(Request $request) {
+        //Update firstName if is required
+        $validator = Validator::make($request->all(), [
+            'firstName' => 'required|string'
+        ]);        
+        if (!$validator->fails()) {
+            $profile = Profile::find($request->get('myProfile'));
+            $profile->firstName = $request->firstName;
+            $profile->save();
+            return response()->json(null, 200);
+        }
+        //Update lastName if is required
+        $validator = Validator::make($request->all(), [
+            'lastName' => 'required|string'
+        ]);        
+        if (!$validator->fails()) {
+            $profile = Profile::find($request->get('myProfile'));
+            $profile->lastName = $request->lastName;
+            $profile->save();
+            return response()->json(null, 200);
+        }        
+        //Update avatar if is required
+        $validator = Validator::make($request->all(), [
+            'avatar' => 'required|string'
+        ]);        
+        if (!$validator->fails()) {
+            $profile = Profile::find($request->get('myProfile'));
+            $profile->avatar = $request->avatar;
+            $profile->save();
+            return response()->json(null, 200);
+        } 
+
+        //Update mobile if is required
+        $validator = Validator::make($request->all(), [
+            'mobile' => 'required|numeric|unique:profiles'
+        ]);        
+        if (!$validator->fails()) {
+            $profile = Profile::find($request->get('myProfile'));
+            $profile->mobile = $request->mobile;
+            $profile->save();
+            return response()->json(null, 200);
+        }  
+
+        //Update password
+        $validator = Validator::make($request->all(), [
+            'password_old' => 'required|string|min:5',
+            'password_new' => 'required|string|min:5'
+        ]);        
+        if (!$validator->fails()) {
+            //Check that password old matches
+            $user = Profile::find($request->get('myProfile'))->users()->where("access", $request->get('myAccess'))->first();
+            if (!Hash::check($request->get('password_old'), $user->password)) {
+                return response()->json([
+                    'response' => 'error',
+                    'message' => 'invalid_password'
+                ],401);
+            }
+            $user->password = Hash::make($request->get('password_new'), ['rounds' => 12]);
+            $user->save();
+            return response()->json(null, 200);
+        }  
+
+        //Update email if is required and then we need to set email validated to false and logout and send email
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|unique:profiles'
+        ]);        
+        if (!$validator->fails()) {
+            $profile = Profile::find($request->get('myProfile'));
+            $profile->isEmailValidated = 0;
+            $profile->emailValidationKey = Str::random(50);
+            $profile->email = $request->email;
+            $profile->save();
+            //Update email on all users of the profile
+            $profile->users()->each(function($user) use ($profile) {
+                $user->email = $profile->email;
+                $user->save();
+            });
+            //Send email with validation key
+            $data = [
+                'name' =>  $profile->firstName,
+                'key' => Config::get('constants.API_URL') . '/api/auth/emailvalidate?id=' . 
+                        $profile->id  .
+                        '&key=' .
+                        $profile->emailValidationKey
+            ];
+
+            Mail::send('emails.validateemail',$data, function($message) use ($profile)
+            {
+                $message->from(Config::get('constants.EMAIL_FROM_ADDRESS'), Config::get('constants.EMAIL_FROM_NAME'));
+                $message->replyTo(Config::get('constants.EMAIL_NOREPLY'));
+                $message->to($profile->email);
+                $message->subject("GMA500: Confirmation de votre adresse électronique");
+            });  
+            //Invalidate the token
+            JWTAuth::invalidate($request->bearerToken());
+            return response()->json(null, 200);
+        }
+        //If we got here, we have bad arguments
+        return response()->json(null,400);
+
+    }
+
 
 
     /////////////////////////////////////////////////////////////////////////////////////////
@@ -273,7 +381,7 @@ class ApiController extends Controller
     //  We get id of the user from email change password and send email with new password
     //
     ////////////////////////////////////////////////////////////////////////////////////////
-    public function resetPassword(REquest $request) {
+    public function resetPassword(Request $request) {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'access' => 'nullable|min:3'
