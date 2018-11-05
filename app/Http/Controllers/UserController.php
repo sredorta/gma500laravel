@@ -39,6 +39,59 @@ class UserController extends Controller
             return $str;
     }
 
+    //Switches a Member to Pré-inscrit and viceversa
+    public function toggleMember(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'profile_id' => 'required|numeric'
+        ]);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(),400);
+        }
+        $profile = Profile::find($request->profile_id);
+        $user = $profile->users()->where("access", Config::get('constants.ACCESS_MEMBER'));
+        if ($user->count() === 1) {
+            $user = $user->first();
+            $user->access = Config::get('constants.ACCESS_DEFAULT');
+            $user->save();
+            //Send email with Member -> default
+            $data = [
+                'title' => 'Compte Membre suprimé',
+                'text' => 'Votre compte \'Membre\' vient d\'etre suprimé'
+            ];        
+            Mail::send('emails.generic',$data, function($message) use ($user)
+            {
+                $message->from(Config::get('constants.EMAIL_FROM_ADDRESS'), Config::get('constants.EMAIL_FROM_NAME'));
+                $message->replyTo(Config::get('constants.EMAIL_NOREPLY'));
+                $message->to($user->email);
+                $message->subject("GMA500: Votre compte 'Membre'" );
+            });            
+
+        } else {
+            $user = $profile->users()->where("access", Config::get('constants.ACCESS_DEFAULT'));
+            if ($user->count() === 1) {
+                $user = $user->first();
+                $user->access = Config::get('constants.ACCESS_MEMBER');
+                $user->save();
+                //Send email with default -> Member
+                $data = [
+                    'title' => 'Compte Membre est accepté',
+                    'text' => 'Votre compte \'Membre\' vient d\'etre accepté'
+                ];        
+                Mail::send('emails.generic',$data, function($message) use ($user)
+                {
+                    $message->from(Config::get('constants.EMAIL_FROM_ADDRESS'), Config::get('constants.EMAIL_FROM_NAME'));
+                    $message->replyTo(Config::get('constants.EMAIL_NOREPLY'));
+                    $message->to($user->email);
+                    $message->subject("GMA500: Votre compte 'Membre'" );
+                });   
+
+            }        
+        }
+        return response()->json(null,204);
+    
+    }
+
+
     //Adds a user to a profile
     public function add(Request $request) {
         $validator = Validator::make($request->all(), [

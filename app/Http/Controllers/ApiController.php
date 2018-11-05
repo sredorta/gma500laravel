@@ -279,7 +279,10 @@ class ApiController extends Controller
             $profile = Profile::find($request->get('myProfile'));
             $profile->firstName = $request->firstName;
             $profile->save();
-            return response()->json(null, 200);
+            return response()->json([
+                'response' => 'success',
+                'message' => 'update_success',
+            ], 200);
         }
         //Update lastName if is required
         $validator = Validator::make($request->all(), [
@@ -289,7 +292,10 @@ class ApiController extends Controller
             $profile = Profile::find($request->get('myProfile'));
             $profile->lastName = $request->lastName;
             $profile->save();
-            return response()->json(null, 200);
+            return response()->json([
+                'response' => 'success',
+                'message' => 'update_success',
+            ], 200);            
         }        
         //Update avatar if is required
         $validator = Validator::make($request->all(), [
@@ -299,7 +305,10 @@ class ApiController extends Controller
             $profile = Profile::find($request->get('myProfile'));
             $profile->avatar = $request->avatar;
             $profile->save();
-            return response()->json(null, 200);
+            return response()->json([
+                'response' => 'success',
+                'message' => 'update_success',
+            ], 200);
         } 
 
         //Update mobile if is required
@@ -310,7 +319,10 @@ class ApiController extends Controller
             $profile = Profile::find($request->get('myProfile'));
             $profile->mobile = $request->mobile;
             $profile->save();
-            return response()->json(null, 200);
+            return response()->json([
+                'response' => 'success',
+                'message' => 'update_success',
+            ], 200);
         }  
 
         //Update password
@@ -325,11 +337,14 @@ class ApiController extends Controller
                 return response()->json([
                     'response' => 'error',
                     'message' => 'invalid_password'
-                ],401);
+                ],400);
             }
             $user->password = Hash::make($request->get('password_new'), ['rounds' => 12]);
             $user->save();
-            return response()->json(null, 200);
+            return response()->json([
+                'response' => 'success',
+                'message' => 'update_success',
+            ], 200);
         }  
 
         //Update email if is required and then we need to set email validated to false and logout and send email
@@ -365,7 +380,10 @@ class ApiController extends Controller
             });  
             //Invalidate the token
             JWTAuth::invalidate($request->bearerToken());
-            return response()->json(null, 200);
+            return response()->json([
+                'response' => 'success',
+                'message' => 'update_success',
+            ], 200);            
         }
         //If we got here, we have bad arguments
         return response()->json(null,400);
@@ -436,7 +454,10 @@ class ApiController extends Controller
             $message->subject("GMA500: Votre nouveau mot de passe");
         });        
 
-        return response()->json(null, 200); 
+        return response()->json([
+            'response' => 'success',
+            'message' => 'password_reset_success'
+        ], 200); 
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////
