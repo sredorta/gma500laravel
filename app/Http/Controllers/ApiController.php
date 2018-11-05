@@ -386,7 +386,10 @@ class ApiController extends Controller
             ], 200);            
         }
         //If we got here, we have bad arguments
-        return response()->json(null,400);
+        return response()->json([
+            'response' => 'error',
+            'message' => 'update_params_error',
+        ],400);
 
     }
 
@@ -512,6 +515,27 @@ class ApiController extends Controller
             $str = $str . 'Za8';
             return $str;
     }
+
+    /////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //  deleteProfile:
+    //
+    //  Invalidates the token and deletes all data of a profile and the profile
+    //  You need to be registered to be able to delete it
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////
+    //Delete profile and all associated data
+    public function delete(Request $request) { 
+        //Invalidate the token
+        JWTAuth::invalidate($request->bearerToken());
+        Profile::find($request->get('myProfile'))->delete();
+        //Invalidate the token
+        return response()->json(null,200); 
+    }    
+
+
+
+
 
     /////////////////////////////////////////////////////////////////////////////////////////
     //

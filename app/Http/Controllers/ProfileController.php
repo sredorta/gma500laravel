@@ -81,13 +81,13 @@ class ProfileController extends Controller
         //TODO: chose which data we provide depending on access...
         $name = $request->name;
         $validator = Validator::make($request->all(), [
-            'required' => 'string|min:3|max:50',
+            'name' => 'string|min:3|max:50',
         ]);
 
         return response()->json($name,200); 
     }
 
-
+    //Get all user information
     public function adminGetUsers(Request $request) {
         $profiles = Profile::with('roles')->with('users')->with('groups')->orderBy('lastName')->get();
         $profiles->each(function($profile) {
@@ -97,6 +97,17 @@ class ProfileController extends Controller
         return response()->json($profiles->toArray(),200); 
     }
 
+    //Delete profile and all associated data
+    public function adminDelete(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'profile_id' => 'required|numeric',
+        ]);        
+        if ($validator->fails()) {
+            return response()->json(["response"=>"error", "message"=>"validation_failed"],400);
+        }  
+        Profile::find($request->get('profile_id'))->delete();
+        return response()->json(null,200); 
+    }
 
 }
 

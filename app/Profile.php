@@ -72,11 +72,14 @@ class Profile extends Model
     public function delete()
     {
         // delete all related roles (needs to be done with all related tables)
-        $this->roles()->delete();
+        $this->roles()->detach();
+        $this->groups()->detach();
+        $this->users()->delete();
         $this->notifications()->delete();
-        
-        // We cannot delete the profile as we will be referencing it if user has posts,outings...
-        return null;
+        parent::delete();
+        // We need to keep in each post,outing... the firstName and lastName so that even if the profile is deleted
+        //  we still have the name of who posted
+        //
     }
 
 

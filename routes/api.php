@@ -36,6 +36,7 @@ Route::group(['middleware' => 'unregistered'], function ($router) {
 Route::group(['middleware' => 'registered'], function ($router) {
     Route::post('auth/logout', 'ApiController@logout');                 //Logout user from token invalidation
     Route::post('auth/update', 'ApiController@update');                 //Updates profile
+    Route::delete('auth/delete', 'ApiController@delete');                 //Deletes a profile and all data associated
     Route::get('auth/removeaccount', 'ApiController@removeAccount');    //Removes the account given by the token
     //Notifications part
     Route::post('notifications/delete', 'NotificationController@delete');
@@ -53,6 +54,7 @@ Route::group(['middleware' => 'member'], function ($router) {
 //Returns all data from all users including roles and accounts
 Route::group(['middleware' => 'admin'], function ($router) {
     Route::get('admin/users' , 'ProfileController@adminGetUsers');  //Get all profiles
+    Route::post('admin/users/delete' , 'ProfileController@adminDelete');  //Delete a profile and all associated data
     Route::get('admin/roles' , 'RoleController@getRoles');          //Get all Roles
     Route::get('admin/groups' , 'GroupController@getGroups');       //Get all Groups
     Route::post('admin/roles/attach' , 'RoleController@attachProfile');          //Adds a role to a profile
