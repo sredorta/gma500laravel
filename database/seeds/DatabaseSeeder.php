@@ -26,7 +26,8 @@ class DatabaseSeeder extends Seeder
                     GroupsTableSeeder::class,
                     NotificationsTableSeeder::class,
                     ConfigProductCathegorySeeder::class,
-                    ConfigProductTypeSeeder::class
+                    ConfigProductTypeSeeder::class,
+                    ProductsTableSeeder::class
                     ]);
 		// supposed to only apply to a single connection and reset it's self
 		// but I like to explicitly undo what I've done for clarity

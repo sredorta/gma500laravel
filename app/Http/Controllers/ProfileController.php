@@ -25,21 +25,21 @@ class ProfileController extends Controller
             case "bureau":
                 $profiles = Profile::whereHas(
                     'roles', function($q){
-                        $q->where('roles.id','=', 2);
+                        $q->where('roles.name','=', 'Bureau');
                     }
                 )->orderBy('lastName')->get()->pluck('id')->toArray();  
                 break;
             case "board" :
                 $profiles = Profile::whereHas(
                     'roles', function($q){
-                        $q->where('roles.id','>=', 3);
+                        $q->where('roles.name','!=', 'Bureau');
                     }
                 )->orderBy('lastName')->get()->pluck('id')->toArray();
                 break;
-            case "member" : 
+            case "member" :             
                 $profiles = Profile::whereHas(
-                    'roles', function($q){
-                        $q->where('roles.id','=', 1);
+                    'users', function($q){
+                        $q->where('access','=', 'Membre');
                     }
                 )->orderBy('lastName')->get()->pluck('id')->toArray();            
                 break;
@@ -51,7 +51,6 @@ class ProfileController extends Controller
 
 
     public function getProfileById(Request $request){
-        //TODO: chose which data we provide depending on access...
         $id = $request->id;
         $validator = Validator::make($request->all(), [
             'id' => 'required|numeric',
@@ -67,10 +66,10 @@ class ProfileController extends Controller
     //Returns all members
     public function getAllMembers(Request $request){
         $profiles = Profile::filterGet($request)->whereHas(
-            'roles', function($q){
-                $q->where('roles.id','=', 1);
+            'users', function($q){
+                $q->where('access','=', 'Membre');
             }
-        )->limit(10000)->orderBy('lastName')->get(['id'])->toArray();  
+        )->limit(10000)->orderBy('lastName')->get(['id'])->toArray();     
         return response()->json($profiles,200); 
     }
 

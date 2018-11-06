@@ -15,9 +15,24 @@ class CreateProductsTable extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->increments('id');
-            $table->timestamps();
             $table->string('cathegory', 50);
-            $table->string('type', 50);               
+            $table->string('type', 50);    
+            $table->string('image',15000);
+            $table->string('brand',50);
+            $table->string('description',500);
+            $table->string('usage',50);
+            $table->string('serialNumber',50)->unique();
+            $table->string('idGMA',50)->unique();
+            $table->string('fabricatedOn',50);
+            $table->string('boughtOn',50);
+            $table->string('expiresOn',50);
+            $table->string('docLink',200);
+            $table->integer('profile_id')->unsigned()->nullable();
+            $table->foreign('profile_id')->references('id')
+            ->on('profiles')->onDelete('set null');
+            //Missing controls
+            //Missing comments
+            $table->timestamps();
         });
     }
 

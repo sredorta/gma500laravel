@@ -109,12 +109,11 @@ class ApiController extends Controller
         $notification->isRead = 0;
         $profile->notifications()->save($notification);
 
-        //$role ->users() ->associate($user);
-        //$role ->save();
-
         //FINALLY:: Return ok code
-        $object = (object) ['email' => $profile->email, 'id' => $profile->id];
-        return response()->json($object, 200);
+        return response()->json([
+            'response' => 'success',
+            'message' => 'signup_success',
+        ], 200);
     }
     
     /////////////////////////////////////////////////////////////////////////////////////////

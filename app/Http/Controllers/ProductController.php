@@ -1,29 +1,39 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Config;
 use Illuminate\Http\Request;
 use App\Product;
+use App\Profile;
+use Validator;
 
 class ProductController extends Controller
 {
     //
-    public function index()
+    public function index(Request $request)
     {
-        return Product::all();
+        //TODO: Use filterGet here !!!
+        $result = Product::all();
+        return response()->json($result, 200);
     }
 
-    public function show($id)
+
+    public function getById(Request $request)
     {
+        //TODO:filterGET
+        $id = $request->get('id');
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|numeric',
+        ]);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(),400);
+        }  
         $product = Product::find($id);
-        if ($product) {
-            return response()->json($product, 200);
-        } else {
-            //This needs to be commented and return null,204
-            $object = (object) ['test' => 'no data'];
-            return response()->json($object, 204);
-        }
+        $product->assignedTo = Profile::filterGet($request)->find($product->profile_id);      
+        return response()->json($product,200);   
     }
+
+
 
     public function store(Request $request)
     {

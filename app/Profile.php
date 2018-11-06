@@ -39,6 +39,12 @@ class Profile extends Model
         return $this->hasMany('App\Notification');
     }
 
+    //One user can have several products
+    public function products()
+    {
+        return $this->hasMany('App\Product');
+    }
+    
     //Remove all profile associated data but not the profile itself
     public function deleteAssociatedData() {
         $this->roles()->detach();   //Detach all roles of Profile

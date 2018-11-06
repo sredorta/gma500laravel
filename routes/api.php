@@ -22,6 +22,9 @@ Route::group(['middleware' => 'any'], function ($router) {
     Route::get('auth/user', 'ApiController@getAuthUser');   //Return user from token
     Route::post('users/indexes' , 'ProfileController@getProfileIndexesByRole');  //Return indexes of members
     Route::post('users/data' , 'ProfileController@getProfileById');  //Get profile from id
+
+    Route::get('products/get', 'ProductController@index');
+    Route::post('products/find', 'ProductController@getById');
 });    
 
 //Only if we are not loggedIn
@@ -90,8 +93,8 @@ Route::delete('config/product/types/{id}', 'ConfigProductTypeController@delete')
 
 
 
-Route::get('products', 'ProductController@index');
-Route::get('products/{id}', 'ProductController@show');
+//Route::get('products', 'ProductController@index');
+//Route::get('products/{id}', 'ProductController@show');
 //Route::post('products', 'ProductController@store');
 //Route::put('products/{id}', 'ProductController@update');
 //Route::delete('products/{id}', 'ProductController@delete');
