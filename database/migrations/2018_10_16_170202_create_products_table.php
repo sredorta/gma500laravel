@@ -28,8 +28,7 @@ class CreateProductsTable extends Migration
             $table->string('expiresOn',50);
             $table->string('docLink',200);
             $table->integer('profile_id')->unsigned()->nullable();
-            $table->foreign('profile_id')->references('id')
-            ->on('profiles')->onDelete('set null');
+            $table->foreign('profile_id')->references('id')->on('profiles')->onDelete('set null');
             //Missing controls
             //Missing comments
             $table->timestamps();

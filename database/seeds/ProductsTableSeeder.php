@@ -4,6 +4,7 @@ use Illuminate\Database\Seeder;
 use App\Product;
 use App\ConfigProductType;
 use App\ConfigProductCathegory;
+use App\Profile;
 use Illuminate\Support\Str;
 
 class ProductsTableSeeder extends Seeder
@@ -52,20 +53,33 @@ class ProductsTableSeeder extends Seeder
 
 
       for ($i = 0; $i < $productsCount; $i++) {
-          Product::create([
+          $product = Product::create([
               'cathegory' => ConfigProductCathegory::find(mt_rand(1,6))->name,
               'type' => ConfigProductType::find(mt_rand(1,7))->name,
               'image' => $images[mt_rand(0,9)],
               'brand' => $brands[mt_rand(0,9)],
               'description' => $faker->text($maxNbChars = 300),
               'usage' => $usages[mt_rand(0,2)],
-              'serialNumber' => Str::random(50),
-              'idGMA' => Str::random(20),
+              'serialNumber' => Str::random(20),
+              'idGMA' => Str::random(5),
               'fabricatedOn' => $faker->dateTimeBetween('-10 years', 'now'),
               'boughtOn' => $faker->dateTimeBetween('-4 years', 'now'),
               'expiresOn' => $faker->dateTimeBetween('now', '+2 years'),
               'docLink' => "http://this_is_a_fake.html"
           ]);
+          //Assign products to profiles randomly
+            /*$status = OrderStatus::where(['name'=>'sample_status'])->firstOrFail();
+            $order = new Order;
+            $order->status()->associate($status);
+            $order->save();*/
+
+           if (mt_rand(0,2)===1) {
+            $profilesCount = Profile::all()->count();
+            $profile = Profile::find(mt_rand(1, $profilesCount));
+            $product->profile()->associate($profile);
+            $product->save();
+           }
+
       }
     }
 }

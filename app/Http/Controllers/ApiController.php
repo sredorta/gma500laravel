@@ -240,7 +240,7 @@ class ApiController extends Controller
         $payload = JWTAuth::parseToken()->getPayload();
         $user = User::find($payload->get('id'));
         //Return all data
-        $profile = Profile::with('roles')->with('groups')->with('notifications')->find($user->profile_id);
+        $profile = Profile::with('roles')->with('groups')->with('notifications')->with('products')->find($user->profile_id);
         $notifsCount = Notification::where('profile_id', $user->profile_id)->where('isRead', 0)->count();
         $profile->access = $user->access;
         $profile->notifsUnreadCount = $notifsCount;
@@ -525,6 +525,10 @@ class ApiController extends Controller
     ////////////////////////////////////////////////////////////////////////////////////////
     //Delete profile and all associated data
     public function delete(Request $request) { 
+        //Check that user doesn't have any product assigned
+        if (Profile::find($request->get('myProfile'))->products()->count()>0) {
+            return response()->json(["response" => "error", "message"=>"owning_products"],400);
+        }
         //Invalidate the token
         JWTAuth::invalidate($request->bearerToken());
         Profile::find($request->get('myProfile'))->delete();

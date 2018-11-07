@@ -12,8 +12,7 @@ class ProductController extends Controller
     //
     public function index(Request $request)
     {
-        //TODO: Use filterGet here !!!
-        $result = Product::all();
+        $result = Product::filterGet($request)->get();
         return response()->json($result, 200);
     }
 
@@ -29,7 +28,7 @@ class ProductController extends Controller
             return response()->json($validator->errors(),400);
         }  
         $product = Product::find($id);
-        $product->assignedTo = Profile::filterGet($request)->find($product->profile_id);      
+        $product->assignedTo = $product->profile()->first();      
         return response()->json($product,200);   
     }
 
