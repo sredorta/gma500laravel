@@ -73,6 +73,12 @@ Route::group(['middleware' => 'admin'], function ($router) {
     Route::post('admin/accounts/add' , 'UserController@add');       //Adds account to profile and sends email  
     Route::post('admin/accounts/remove' , 'UserController@remove'); //Removes an account of a profile and sends email  
     Route::post('admin/accounts/toggle' , 'UserController@toggleMember'); //Toggles account access from Pré-inscrit to Member and send email  
+
+    Route::post('admin/products/attach' , 'ProductController@attachProductToProfile');        //Adds a group to a profile
+    Route::post('admin/products/detach' , 'ProductController@detachProductFromProfile');  //Removes a group to a profile
+    Route::post('admin/products/create' , 'ProductController@create');        //Adds a group to a profile
+    Route::post('admin/products/delete' , 'ProductController@delete');  //Removes a group to a profile
+
 });
 
 

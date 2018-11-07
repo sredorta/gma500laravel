@@ -19,7 +19,7 @@ class Product extends Model
         if ($request->get('myAccess') == Config::get('constants.ACCESS_MEMBER'))  {
             return Product::select('id','image','cathegory','type','brand','description','usage','docLink','idGMA','serialNumber','profile_id');
         } else if ($request->get('myAccess') == Config::get('constants.ACCESS_ADMIN')) {
-            return Product::select('*');
+            return Product::select('*')->with('profile');
         } else {
             return Product::select('id','idGMA','image','cathegory','type','brand','description','usage','docLink');
         }        

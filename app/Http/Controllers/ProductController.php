@@ -31,6 +31,52 @@ class ProductController extends Controller
         $product->assignedTo = $product->profile()->first();      
         return response()->json($product,200);   
     }
+    //Delete product
+    public function delete(Request $request)
+    {
+        $id = $request->get('product_id');
+        $validator = Validator::make($request->all(), [
+            'product_id' => 'required|numeric',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(["response"=>"error", "message"=>"invalid_params"],400);
+        }          
+        Product::find($id)->delete();
+        return response()->json(null, 204);
+    }
+
+
+    //Attach product to user
+    public function attachProductToProfile(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'product_id' => 'required|numeric',
+            'profile_id' => 'required|numeric'
+        ]);
+        if ($validator->fails()) {
+            return response()->json(["response"=>"error", "message"=>"invalid_params"],400);
+        }       
+        $profile = Profile::find($request->get('profile_id'));
+        $product = Product::find($request->get('product_id'));
+        $product->profile()->associate($profile);
+        $product->save();
+        return response()->json(null, 204);
+    }    
+
+    //Dettach product from user
+    public function detachProductFromProfile(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'product_id' => 'required|numeric'
+        ]);
+        if ($validator->fails()) {
+            return response()->json(["response"=>"error", "message"=>"invalid_params"],400);
+        }       
+        $product = Product::find($request->get('product_id'));
+        $product->profile_id = null;
+        $product->save();
+        return response()->json(null, 204);
+    }    
 
 
 
@@ -46,11 +92,7 @@ class ProductController extends Controller
         return response()->json($product, 200);
     }
 
-    public function delete(Product $product)
-    {
-        $product->delete();
-        return response()->json(null, 204);
-    }
+
 
 }
 /*
