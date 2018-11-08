@@ -45,6 +45,45 @@ class ProductController extends Controller
         return response()->json(null, 204);
     }
 
+    //Add product
+    public function create(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'image'         => 'required',
+            'cathegory'     => 'required',
+            'type'          => 'required',
+            'brand'         => 'required',
+            'description'   => 'required',
+            'usage'         => 'required',
+            'serialNumber'  => 'required',
+            'idGMA'         => 'required',
+            'fabricatedOn'  => 'required', 
+            'boughtOn'      => 'required',
+            'expiresOn'     => 'required',
+            'docLink'       => 'required'          
+        ]);
+        if ($validator->fails()) {
+            return response()->json(["response"=>"error", "message"=>"invalid_params","test"=>$request->all()],400);
+        }          
+
+        $product = Product::create([
+            'image'         => $request->get('image'),
+            'cathegory'     => $request->get('cathegory'),
+            'type'          => $request->get('type'),
+            'brand'         => $request->get('brand'),
+            'description'   => $request->get('description'),
+            'usage'         => $request->get('usage'),
+            'serialNumber'  => $request->get('serialNumber'),
+            'idGMA'         => $request->get('idGMA'),
+            'fabricatedOn'  => $request->get('fabricatedOn'), 
+            'boughtOn'      => $request->get('boughtOn'),
+            'expiresOn'     => $request->get('expiresOn'),
+            'docLink'       => $request->get('docLink')    
+        ]);
+        return response()->json($product->id, 200);
+    }
+
+
 
     //Attach product to user
     public function attachProductToProfile(Request $request)
@@ -54,7 +93,7 @@ class ProductController extends Controller
             'profile_id' => 'required|numeric'
         ]);
         if ($validator->fails()) {
-            return response()->json(["response"=>"error", "message"=>"invalid_params"],400);
+            return response()->json(["response"=>"error", "message"=>"invalid_params","params"=>$request->all()],400);
         }       
         $profile = Profile::find($request->get('profile_id'));
         $product = Product::find($request->get('product_id'));

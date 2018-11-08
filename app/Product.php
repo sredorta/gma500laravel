@@ -19,7 +19,7 @@ class Product extends Model
         if ($request->get('myAccess') == Config::get('constants.ACCESS_MEMBER'))  {
             return Product::select('id','image','cathegory','type','brand','description','usage','docLink','idGMA','serialNumber','profile_id');
         } else if ($request->get('myAccess') == Config::get('constants.ACCESS_ADMIN')) {
-            return Product::select('*')->with('profile');
+            return Product::select('*');
         } else {
             return Product::select('id','idGMA','image','cathegory','type','brand','description','usage','docLink');
         }        
@@ -40,7 +40,12 @@ class Product extends Model
             'docLink',
             'idGMA',
             'serialNumber',
-            'profile_id'
+            'usage',    
+            'fabricatedOn', 
+            'boughtOn',
+            'expiresOn'
+
+
     ];
 
     /**
