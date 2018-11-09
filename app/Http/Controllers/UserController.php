@@ -14,7 +14,7 @@ use App\Mail\ValidateEmail;
 use App\User;
 use App\Role;
 use App\Profile;
-
+use App\Notification;
 
 class UserController extends Controller
 {
@@ -53,6 +53,9 @@ class UserController extends Controller
             $user = $user->first();
             $user->access = Config::get('constants.ACCESS_DEFAULT');
             $user->save();
+            $notif = new Notification;
+            $notif->text = "Votre compte Membre vient d'etre suprimé";
+            $profile->notifications()->save($notif);
             //Send email with Member -> default
             $data = [
                 'title' => 'Compte Membre suprimé',
@@ -72,6 +75,9 @@ class UserController extends Controller
                 $user = $user->first();
                 $user->access = Config::get('constants.ACCESS_MEMBER');
                 $user->save();
+                $notif = new Notification;
+                $notif->text = "Votre compte Membre vient d'etre accepté";
+                $profile->notifications()->save($notif);
                 //Send email with default -> Member
                 $data = [
                     'title' => 'Compte Membre est accepté',
@@ -111,6 +117,9 @@ class UserController extends Controller
             'password' => Hash::make($pass, ['rounds' => 12]),
             'access' => $request->access
         ]);
+        $notif = new Notification;
+        $notif->text = 'Votre compte ' . $request->access . ' vient d\'etre accepté';
+        $profile->notifications()->save($notif);
         //Send email with new password
         $data = [
             'name' =>  $profile->firstName,
@@ -139,6 +148,9 @@ class UserController extends Controller
         //Remove the accounts
         User::where("profile_id", $request->profile_id)->where("access", $request->access)->delete();
         $profile = Profile::find($request->profile_id);
+        $notif = new Notification;
+        $notif->text = 'Votre compte ' . $request->access . ' vient d\'etre suprimé';
+        $profile->notifications()->save($notif);
         //Send email with new password
         $access = $request->access;
         $data = [

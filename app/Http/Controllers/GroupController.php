@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Validator;
 use App\Group;
 use App\Profile;
+use App\Notification;
 
 
 class GroupController extends Controller
@@ -27,6 +28,9 @@ class GroupController extends Controller
         }          
         $profile = Profile::find($request->profile_id);
         $profile->groups()->attach($request->group_id);
+        $notif = new Notification;
+        $notif->text = "Vous faites maintenant parti du group " . Group::find($request->group_id)->name;
+        $profile->notifications()->save($notif);
         return response()->json(null,204); 
     }
 
@@ -41,6 +45,9 @@ class GroupController extends Controller
         }          
         $profile = Profile::find($request->profile_id);
         $profile->groups()->detach($request->group_id);
+        $notif = new Notification;
+        $notif->text = "Vous ne faites plus parti du groupe " . Group::find($request->group_id)->name;
+        $profile->notifications()->save($notif);        
         return response()->json(null,204); 
     }       
 

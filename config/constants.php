@@ -3,8 +3,10 @@
 
 
 return [
-    'API_URL' => 'http://localhost:8000',
-    'SITE_URL' => 'http://localhost:4200', 
+    'API_URL' => 'https://www.ecube-solutions.com/gma500laravel/public',
+    'SITE_URL' => 'https://www.ecube-solutions.com',
+    //'API_URL' => 'http://localhost:8000',  //In prod: https://www.ecube-solutions.com/gma500laravel/public
+    //'SITE_URL' => 'http://localhost:4200', 
     'EMAIL_FROM_ADDRESS' => 'webmaster@gma500.fr',
     'EMAIL_FROM_NAME' => 'GMA500',
     'EMAIL_NOREPLY' => 'no-reply@gma500.fr',

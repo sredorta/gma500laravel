@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Validator;
 use App\Role;
 use App\Profile;
+use App\Notification;
 
 class RoleController extends Controller
 {
@@ -25,6 +26,9 @@ class RoleController extends Controller
             return response()->json($validator->errors(),400);
         }          
         $profile = Profile::find($request->profile_id);
+        $notif = new Notification;
+        $notif->text = "Le role de " . Role::find($request->role_id)->name . " vous à été assigné";
+        $profile->notifications()->save($notif);
         $profile->roles()->attach($request->role_id);
         return response()->json(null,204); 
     }
@@ -40,6 +44,9 @@ class RoleController extends Controller
         }          
         $profile = Profile::find($request->profile_id);
         $profile->roles()->detach($request->role_id);
+        $notif = new Notification;
+        $notif->text = "Le role de " . Role::find($request->role_id)->name . " vous à été enlevé";
+        $profile->notifications()->save($notif);
         return response()->json(null,204); 
     }
     
